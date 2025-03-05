@@ -1,0 +1,39 @@
+services: 
+  authentication-service:
+    build:
+      context: .
+      dockerfile : Dockerfile
+    ports:
+    - "8080:8080"
+    environment:
+      # Cấu hình kết nối với MariaDB
+      - SPRING_DATASOURCE_URL=jdbc:mariadb://mariadb:3306/UserDB
+      - SPRING_DATASOURCE_DRIVERCLASSNAME=org.mariadb.jdbc.Driver
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.MariaDBDialect
+    depends_on :
+      - mariadb #Đảm bảo mariadb khởi động trước authentication-service
+    networks:
+      - app-network
+
+  # cấu hình cho mariaDB
+  mariadb:
+    image: mariadb:10.4.32
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=UserDB
+    volumes:
+      - mariadb-data:/var/lib/mysql # Lưu trữ dữ liệu MariaDB để không mất khi container dừng
+    networks:
+      - app-network
+# Định nghĩa volume để lưu trữ dữ liệu MariaDB
+volumes:
+  mariadb-data:
+# Định nghĩa network để auth-service và mariadb giao tiếp
+networks:
+  app-network:
+    driver: bridge
