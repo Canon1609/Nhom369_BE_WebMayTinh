@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>fit.iuh</groupId>
-    <artifactId>Authentication-Service</artifactId>
+    <artifactId>Authen-Service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>User-Service</name>
-    <description>User-Service</description>
+    <name>Auth-Service</name>
+    <description>Auth-Service</description>
     <url/>
     <licenses>
         <license/>
