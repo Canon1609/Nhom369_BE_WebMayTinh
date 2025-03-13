@@ -24,7 +24,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
       http
               .csrf(csrf -> csrf.disable())
-              .authorizeHttpRequests(authorize -> authorize.requestMatchers("/auth/**").permitAll().anyRequest().authenticated())
+              .authorizeHttpRequests(authorize -> authorize.requestMatchers("/auth/**").permitAll()
+                      .anyRequest().authenticated())
               // tắt quản l seesion
               .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 // Thêm bộ lọc JwtRequestFilter trước UsernamePasswordAuthenticationFilter

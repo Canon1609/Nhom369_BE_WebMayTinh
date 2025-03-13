@@ -3,35 +3,42 @@ package fit.iuh.security;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Set;
 
 @Component
 public class JwtUtil {
-    private SecretKey secret = Keys.secretKeyFor(SignatureAlgorithm.HS512);
-    private  long accessTokenExp = 3600000 ; // 1 giờ access token
+
+    private final SecretKey secret;
+    public JwtUtil(@Value("${jwt.secret}") String secretString) {
+        this.secret = Keys.hmacShaKeyFor(secretString.getBytes(StandardCharsets.UTF_8));
+    }
+    private long accessTokenExp = 3600000 ; // 1 giờ access token
     private long refreshTokenExp = 604800000; // 7 ngày rf token ;
 
     // tạo Access Token
-    public String generateAccessToken(String userName) {
+    public String generateAccessToken(String userName , Set<String> roles) {
         return Jwts.builder()
                 .setSubject(userName)
+                .claim("roles" , roles )
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + accessTokenExp))
-                .signWith(secret, SignatureAlgorithm.HS512)
+                .signWith(SignatureAlgorithm.HS512, secret)
                 .compact();
 
     }
-
     // tạo Refresh Token
     public String generateRefreshToken(String userName) {
         return Jwts.builder()
                 .setSubject(userName)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExp))
-                .signWith(secret, SignatureAlgorithm.HS512)
+                .signWith(SignatureAlgorithm.HS512, secret)
                 .compact();
 
     }
@@ -46,6 +53,11 @@ public class JwtUtil {
                 .getSubject();
     }
 
+    //Trích xuất danh sách role từ token
+    public Set<String> extractRoles(String token) {
+        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody()
+                .get("roles", Set.class);
+    }
     // kiểm tra token có hợp lệ không
     public boolean validateToken(String token , String userName) {
        try{

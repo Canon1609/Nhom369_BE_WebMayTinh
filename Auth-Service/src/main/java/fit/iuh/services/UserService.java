@@ -1,6 +1,4 @@
 package fit.iuh.services;
-
-
 import fit.iuh.models.User;
 import fit.iuh.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,4 +84,5 @@ public class UserService {
                 .findFirst()
                 .orElse(null);
     }
+
 }

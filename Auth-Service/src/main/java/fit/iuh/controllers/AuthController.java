@@ -17,6 +17,7 @@ import java.util.Map;
 public class AuthController {
     @Autowired
     private UserService userService;
+
     @Autowired
     private JwtUtil jwtUtil;
     /**
@@ -75,8 +76,8 @@ public class AuthController {
                return ResponseEntity.status(401).body(response);
            }
            if (userService.checkPassword(user.getPassword(), existingUser.getPassword())) {
-               String accessToken = jwtUtil.generateAccessToken(user.getUsername());
-               String refreshToken = jwtUtil.generateRefreshToken(user.getUsername());
+               String accessToken = jwtUtil.generateAccessToken(existingUser.getUsername() , existingUser.getRoles());
+               String refreshToken = jwtUtil.generateRefreshToken(existingUser.getUsername());
                userService.updateRefreshToken(user.getUsername(), refreshToken);
                Map<String, String> tokens = new HashMap<>();
                tokens.put("accessToken", accessToken);
@@ -119,12 +120,13 @@ public class AuthController {
             }
             // xác thực refreshToken và tạo accesstoken mới
             if (jwtUtil.validateToken(refreshToken, user.getUsername())) {
-                String newAccessToken = jwtUtil.generateAccessToken(user.getUsername());
+                String newAccessToken = jwtUtil.generateAccessToken(user.getUsername() , user.getRoles());
                 Map<String, String> tokens = new HashMap<>();
                 tokens.put("accessToken", newAccessToken);
                 tokens.put("refreshToken", refreshToken);
                 return ResponseEntity.ok(tokens);
-            } else {
+            }
+            else {
                 response.put("message","refresh token không hợp lệ");
                 return ResponseEntity.status(403).body(response);
             }
