@@ -76,6 +76,7 @@ public class AuthController {
                return ResponseEntity.status(401).body(response);
            }
            if (userService.checkPassword(user.getPassword(), existingUser.getPassword())) {
+               System.out.println(existingUser.getRoles());
                String accessToken = jwtUtil.generateAccessToken(existingUser.getUsername() , existingUser.getRoles());
                String refreshToken = jwtUtil.generateRefreshToken(existingUser.getUsername());
                userService.updateRefreshToken(user.getUsername(), refreshToken);
