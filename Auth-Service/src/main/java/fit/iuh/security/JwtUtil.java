@@ -41,7 +41,8 @@ public class JwtUtil {
         return Jwts.parserBuilder()
                 .setSigningKey(secret) // sử dụng SecretKey
                 .build()
-                .parseClaimsJwt(token)
+//                .parseClaimsJwt(token)
+                .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
     }
@@ -50,7 +51,8 @@ public class JwtUtil {
     public boolean validateToken(String token , String userName) {
        try{
            String tokenUserName = extractUsername(token);
-           return (tokenUserName.equals(userName) && isTokenExpired(token));
+//           return (tokenUserName.equals(userName) && isTokenExpired(token));
+           return (tokenUserName.equals(userName) && !isTokenExpired(token));
        } catch (Exception e) {
            return false;
        }
