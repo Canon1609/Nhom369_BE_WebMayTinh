@@ -2,6 +2,10 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+<<<<<<< HEAD
     <mapping directory="$PROJECT_DIR$/Cart_Order-Service" vcs="Git" />
+=======
+    <mapping directory="$PROJECT_DIR$/Cart-Service" vcs="Git" />
+>>>>>>> 423eca45510dbc12f23eadd213ee364fc3c88f7f
   </component>
 </project>
