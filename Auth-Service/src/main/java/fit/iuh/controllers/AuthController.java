@@ -14,6 +14,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
+@CrossOrigin(origins = "http://localhost:5173")
 public class AuthController {
     @Autowired
     private UserService userService;
@@ -60,10 +61,10 @@ public class AuthController {
      * @return ResponseEntity với thông báo đăng nhập thành công hoặc lỗi
      */
    @PostMapping("/login")
-   public ResponseEntity<Map<String, String>> login(@RequestBody User user) {
-       Map<String, String> response = new HashMap<>();
+   public ResponseEntity<Map<String, Object>> login(@RequestBody User user) {
+       Map<String, Object> response = new HashMap<>();
        try {
-        // kiểm tra username hoặc password có bị null không 
+        // kiểm tra username hoặc password có bị null không
            if (user.getUsername() == null || user.getPassword() == null) {
                response.put("message" , "Tài khoản và mật khẩu không được bỏ trống");
                return ResponseEntity.status(400).body(response);
@@ -81,10 +82,25 @@ public class AuthController {
                Map<String, String> tokens = new HashMap<>();
                tokens.put("accessToken", accessToken);
                tokens.put("refreshToken", refreshToken);
-               return ResponseEntity.ok(tokens);
+
+               // Tạo map user để chứa thông tin người dùng
+               Map<String, Object> userInfo = new HashMap<>();
+               userInfo.put("username", existingUser.getUsername());
+               userInfo.put("email", existingUser.getEmail());
+               userInfo.put("id", existingUser.getId());
+               userInfo.put("avatar", existingUser.getAvt());
+
+
+
+               response.put("tokens", tokens);
+               response.put("user", userInfo);
+
+               return ResponseEntity.ok(response);
+//               return ResponseEntity.ok(tokens);
+
            } else {
-               response.put("message","");
-               return ResponseEntity.status(401).body(null);
+               response.put("message","Tài khoản hoặc mật khẩu không chính xác");
+               return ResponseEntity.status(401).body(response);
            }
        } catch (Exception e) {
            response.put("message" , e.getMessage());
@@ -133,5 +149,85 @@ public class AuthController {
             return ResponseEntity.status(500).body(response);
         }
     }
-  
+
+
+
+    @GetMapping("/account")
+    public ResponseEntity<Map<String, Object>> getUserInfo(@RequestHeader("Authorization") String authHeader) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            // Kiểm tra xem header có đúng định dạng không
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                response.put("message", "Thiếu hoặc sai định dạng Authorization header");
+                return ResponseEntity.status(401).body(response);
+            }
+
+            // Lấy token từ header
+            String token = authHeader.substring(7); // Bỏ qua "Bearer "
+
+            // Trích xuất username từ token
+            String username = jwtUtil.extractUsername(token);
+            if (username == null) {
+                response.put("message", "Token không hợp lệ hoặc hết hạn");
+                return ResponseEntity.status(401).body(response);
+            }
+
+            // Tìm người dùng từ database
+            User user = userService.finByUserName(username);
+            if (user == null) {
+                response.put("message", "Người dùng không tồn tại");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            // Trả về thông tin người dùng
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("username", user.getUsername());
+            userInfo.put("email", user.getEmail());
+            userInfo.put("id", user.getId());
+            userInfo.put("avatar", user.getAvt());
+
+            response.put("user", userInfo);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("message", "Lỗi hệ thống: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Map<String, Object>> logout(@RequestHeader("Authorization") String authHeader) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                response.put("message", "Thiếu hoặc sai định dạng Authorization header");
+                return ResponseEntity.status(401).body(response);
+            }
+
+            String token = authHeader.substring(7);
+            String username = jwtUtil.extractUsername(token);
+
+            if (username == null) {
+                response.put("message", "Token không hợp lệ hoặc đã hết hạn");
+                return ResponseEntity.status(401).body(response);
+            }
+
+
+            userService.updateRefreshToken(username, null);
+
+            response.put("message", "Đăng xuất thành công");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("message", "Lỗi hệ thống: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+
+
+
+
+
+
 }

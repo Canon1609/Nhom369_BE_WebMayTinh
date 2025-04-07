@@ -18,7 +18,7 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
 
     /**
-     *Phương thức signup : Đăng k người dùng mới
+     *Phương thức signup : Đăng kí người dùng mới
      * Nhận một đối tượng User từ controller (chưa thông tin đăng kí như username , password , address , phone , v.v)
      * Mã hóa mật khẩu trước khi lưu
      * Lưu vào db thông qua repository
