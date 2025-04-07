@@ -18,7 +18,7 @@ public class JwtUtil {
     public JwtUtil(@Value("${jwt.secret}") String secretString) {
         this.secret = Keys.hmacShaKeyFor(secretString.getBytes(StandardCharsets.UTF_8));
     }
-    private long accessTokenExp = 3600000 ; // 1 giờ access token
+    private long accessTokenExp = 86400000 ; // 1 ngay  access token
     private long refreshTokenExp = 604800000; // 7 ngày rf token ;
 
     // tạo Access Token
@@ -30,7 +30,6 @@ public class JwtUtil {
                 .setExpiration(new Date(System.currentTimeMillis() + accessTokenExp))
                 .signWith(SignatureAlgorithm.HS512, secret)
                 .compact();
-
     }
     // tạo Refresh Token
     public String generateRefreshToken(String userName) {
