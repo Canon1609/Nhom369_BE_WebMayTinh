@@ -2,63 +2,68 @@ package fit.iuh.services;
 
 
 import fit.iuh.models.Product;
-import fit.iuh.models.UserActivity;
+
 import fit.iuh.repositories.ProductRepository;
-import fit.iuh.repositories.UserActivityRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-public class RecommendationService
-{
+public class RecommendationService {
     @Autowired
     private ProductRepository productRepository;
-    @Autowired
-    private UserActivityRepository userActivityRepository;
 
-    public List<Product> recommendLaptops(String userId) {
-        List<UserActivity> activities = userActivityRepository.findByUserId(userId);
-        Set<String> preferredCategories = new HashSet<>();
-        Set<String> viewedLaptops = new HashSet<>();
+    public List<Product> getPersonalizedRecommendations(
+            String useCase, Double budget, String userPreferences, List<Long> viewedProductIds) {
 
-        for (UserActivity activity : activities) {
-            Product product =productRepository.findById(activity.getLaptopId()).orElse(null);
+        // Lấy tất cả sản phẩm từ repository
+        List<Product> allProducts = productRepository.findAll();
 
-            if (product != null) {
-                preferredCategories.add(product.getCategoryId());
-                viewedLaptops.add(product.getId());
+        // Lấy danh sách sản phẩm đã xem (nếu có)
+        List<Product> viewedProducts = viewedProductIds != null && !viewedProductIds.isEmpty()
+                ? allProducts.stream()
+                .filter(p -> viewedProductIds.contains(p.getId()))
+                .collect(Collectors.toList())
+                : Collections.emptyList();
+
+        // Tính điểm phù hợp
+        Map<Product, Double> productScores = new HashMap<>();
+        for (Product product : allProducts) {
+            double score = 0.0;
+
+            if (useCase != null && !useCase.isEmpty() && product.getUseCase().equalsIgnoreCase(useCase)) {
+                score += 0.4;
             }
-        }
-
-        // Tìm laptop mà user khác cũng xem sau khi xem sản phẩm này
-        Set<String> relatedLaptops = new HashSet<>();
-        for (String laptopId : viewedLaptops) {
-            List<UserActivity> relatedActivities = userActivityRepository.findByLaptopId(laptopId);
-            for (UserActivity act : relatedActivities) {
-                if (!act.getUserId().equals(userId)) {
-                    relatedLaptops.add(act.getLaptopId());
+            if (budget != null && product.getPrice() <= budget) {
+                score += 0.3;
+            }
+            if (userPreferences != null && !userPreferences.isEmpty() &&
+                    product.getPerformance().equalsIgnoreCase(userPreferences)) {
+                score += 0.2;
+            }
+            if (!viewedProducts.isEmpty()) {
+                for (Product viewed : viewedProducts) {
+                    if (viewed.getUseCase().equals(product.getUseCase()) && !viewed.getId().equals(product.getId())) {
+                        score += 0.1;
+                        break;
+                    }
                 }
             }
+            score += Math.random() * 0.2; // Giả lập popularity
+
+            if (score > 0) {
+                productScores.put(product, score);
+            }
         }
 
-        // Đề xuất sản phẩm từ danh mục user quan tâm
-        List<Product> recommendedLaptops = new ArrayList<>();
-        for (String categoryId : preferredCategories) {
-            recommendedLaptops.addAll(productRepository.findByCategoryId(categoryId));
-        }
-
-        return recommendedLaptops.stream()
-                .filter(laptop -> !viewedLaptops.contains(laptop.getId())) // Loại bỏ sản phẩm đã xem
+        // Sắp xếp và giới hạn 5 sản phẩm
+        return productScores.entrySet().stream()
+                .sorted(Map.Entry.<Product, Double>comparingByValue().reversed())
+                .map(Map.Entry::getKey)
+                .limit(5)
                 .collect(Collectors.toList());
-    }
-
-    public UserActivity saveActivity(UserActivity userActivity) {
-        return userActivityRepository.save(userActivity);
     }
 }

@@ -7,64 +7,35 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Getter
-@Setter
-@Table(name = "products")
+@Table(name = "product")
 public class Product {
     @Id
-    private String id;
+    private Long id;
     private String name;
-    private String categoryId;
-    private float price;
-    private String description;
-    private int inStock;
-    private String imgUrl;
+    private double price;
+    private String useCase;
+    private String performance;
 
-    public String getId() {
-        return id;
-    }
+    // Constructors
+    public Product() {}
 
-    public void setId(String id) {
+    public Product(Long id, String name, double price, String useCase, String performance) {
         this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
         this.name = name;
-    }
-
-    public String getCategoryId() {
-        return categoryId;
-    }
-
-    public void setCategoryId(String categoryId) {
-        this.categoryId = categoryId;
-    }
-
-    public float getPrice() {
-        return price;
-    }
-
-    public void setPrice(float price) {
         this.price = price;
+        this.useCase = useCase;
+        this.performance = performance;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public int getInStock() {
-        return inStock;
-    }
-
-    public void setInStock(int inStock) {
-        this.inStock = inStock;
-    }
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public double getPrice() { return price; }
+    public void setPrice(double price) { this.price = price; }
+    public String getUseCase() { return useCase; }
+    public void setUseCase(String useCase) { this.useCase = useCase; }
+    public String getPerformance() { return performance; }
+    public void setPerformance(String performance) { this.performance = performance; }
 }
