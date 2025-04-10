@@ -3,12 +3,15 @@ package fit.iuh.controllers;
 import fit.iuh.models.User;
 import fit.iuh.security.JwtUtil;
 import fit.iuh.services.UserService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.SignatureException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -76,7 +79,7 @@ public class AuthController {
                return ResponseEntity.status(401).body(response);
            }
            if (userService.checkPassword(user.getPassword(), existingUser.getPassword())) {
-               String accessToken = jwtUtil.generateAccessToken(user.getUsername());
+               String accessToken = jwtUtil.generateAccessToken(existingUser.getUsername() , existingUser.getRole());
                String refreshToken = jwtUtil.generateRefreshToken(user.getUsername());
                userService.updateRefreshToken(user.getUsername(), refreshToken);
                Map<String, String> tokens = new HashMap<>();
@@ -89,8 +92,6 @@ public class AuthController {
                userInfo.put("email", existingUser.getEmail());
                userInfo.put("id", existingUser.getId());
                userInfo.put("avatar", existingUser.getAvt());
-
-
 
                response.put("tokens", tokens);
                response.put("user", userInfo);
@@ -135,7 +136,7 @@ public class AuthController {
             }
             // xác thực refreshToken và tạo accesstoken mới
             if (jwtUtil.validateToken(refreshToken, user.getUsername())) {
-                String newAccessToken = jwtUtil.generateAccessToken(user.getUsername());
+                String newAccessToken = jwtUtil.generateAccessToken(user.getUsername() , user.getRole());
                 Map<String, String> tokens = new HashMap<>();
                 tokens.put("accessToken", newAccessToken);
                 tokens.put("refreshToken", refreshToken);
@@ -152,49 +153,6 @@ public class AuthController {
 
 
 
-    @GetMapping("/account")
-    public ResponseEntity<Map<String, Object>> getUserInfo(@RequestHeader("Authorization") String authHeader) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            // Kiểm tra xem header có đúng định dạng không
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                response.put("message", "Thiếu hoặc sai định dạng Authorization header");
-                return ResponseEntity.status(401).body(response);
-            }
-
-            // Lấy token từ header
-            String token = authHeader.substring(7); // Bỏ qua "Bearer "
-
-            // Trích xuất username từ token
-            String username = jwtUtil.extractUsername(token);
-            if (username == null) {
-                response.put("message", "Token không hợp lệ hoặc hết hạn");
-                return ResponseEntity.status(401).body(response);
-            }
-
-            // Tìm người dùng từ database
-            User user = userService.finByUserName(username);
-            if (user == null) {
-                response.put("message", "Người dùng không tồn tại");
-                return ResponseEntity.status(404).body(response);
-            }
-
-            // Trả về thông tin người dùng
-            Map<String, Object> userInfo = new HashMap<>();
-            userInfo.put("username", user.getUsername());
-            userInfo.put("email", user.getEmail());
-            userInfo.put("id", user.getId());
-            userInfo.put("avatar", user.getAvt());
-
-            response.put("user", userInfo);
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            response.put("message", "Lỗi hệ thống: " + e.getMessage());
-            return ResponseEntity.status(500).body(response);
-        }
-    }
-
     @PostMapping("/logout")
     public ResponseEntity<Map<String, Object>> logout(@RequestHeader("Authorization") String authHeader) {
         Map<String, Object> response = new HashMap<>();
@@ -203,21 +161,15 @@ public class AuthController {
                 response.put("message", "Thiếu hoặc sai định dạng Authorization header");
                 return ResponseEntity.status(401).body(response);
             }
-
             String token = authHeader.substring(7);
             String username = jwtUtil.extractUsername(token);
-
             if (username == null) {
                 response.put("message", "Token không hợp lệ hoặc đã hết hạn");
                 return ResponseEntity.status(401).body(response);
             }
-
-
             userService.updateRefreshToken(username, null);
-
             response.put("message", "Đăng xuất thành công");
             return ResponseEntity.ok(response);
-
         } catch (Exception e) {
             response.put("message", "Lỗi hệ thống: " + e.getMessage());
             return ResponseEntity.status(500).body(response);

@@ -17,7 +17,7 @@ public class User {
     private String phone ;
     private String avt ;
     private String refreshToken;
-
+    private String role;
     // Getter và Setter cho username
     public String getUsername() {
         return username;
@@ -88,5 +88,13 @@ public class User {
 
     public void setAvt(String avt) {
         this.avt = avt;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }

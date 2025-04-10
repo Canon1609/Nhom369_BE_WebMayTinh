@@ -3,10 +3,13 @@ package fit.iuh.services;
 
 import fit.iuh.models.User;
 import fit.iuh.repositories.UserRepository;
+import fit.iuh.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class UserService {
@@ -16,11 +19,15 @@ public class UserService {
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JwtUtil jwtUtil;
 
     /**
      *Phương thức signup : Đăng kí người dùng mới
      * Nhận một đối tượng User từ controller (chưa thông tin đăng kí như username , password , address , phone , v.v)
      * Mã hóa mật khẩu trước khi lưu
+     * Tạo refresh token
+     * Set role mặc định là USER
      * Lưu vào db thông qua repository
      * @Param user đối tượng chứa thông tin người dùng
      * @return đối tượng user đã được lưu
@@ -29,7 +36,12 @@ public class UserService {
         if (userRepository.findByUsername(user.getUsername()) != null) {
             throw new IllegalArgumentException("Người dùng đã tồn tại ");
         }
+        if(userRepository.findByEmail(user.getEmail()) != null){
+            throw new IllegalArgumentException("Email đã tồn tại ");
+        }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRole("USER");
+        user.setRefreshToken(jwtUtil.generateRefreshToken(user.getUsername()));
         return userRepository.save(user);
     }
 
@@ -86,4 +98,33 @@ public class UserService {
                 .findFirst()
                 .orElse(null);
     }
+    public User updateUser (User user){
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        return userRepository.save(user);
+    }
+
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    public boolean deleteUser (Long id){
+        User user = userRepository.findById(id).orElse(null);
+        userRepository.delete(user);
+        return true;
+    }
+
+    public User addUser (User user){
+        String email = user.getEmail();
+        if (userRepository.findByUsername(user.getUsername()) != null) {
+            throw new IllegalArgumentException("Người dùng đã tồn tại ");
+        }
+        User existEmail  = userRepository.findByEmail(email);
+        if(existEmail != null){
+            throw new IllegalArgumentException("Email đã tồn tại ");
+        }
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRole("ROLE_USER");
+        return userRepository.save(user);
+    }
+
 }
