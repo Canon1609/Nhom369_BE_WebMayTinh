@@ -14,6 +14,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
+@CrossOrigin("*")
 public class ProductController {
     @Autowired
     private ProductService productService;
@@ -33,7 +34,7 @@ public class ProductController {
         }
     }
 
-    @PostMapping("/products/save")
+    @PostMapping("/products")
     public ResponseEntity<Product> createProduct(@RequestBody Product product) {
         Product savedProduct = productService.saveProduct(product);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
