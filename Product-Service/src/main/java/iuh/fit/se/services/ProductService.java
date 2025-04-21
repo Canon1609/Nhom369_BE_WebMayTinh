@@ -28,4 +28,12 @@ public class ProductService {
     public void deleteProductById(long id) {
         productRepository.deleteById(id);
     }
+
+    public List<Product> getProductsByPriceRange(double minPrice, double maxPrice) {
+        return productRepository.findByPriceBetween(minPrice, maxPrice);
+    }
+
+    public List<Product> searchProductsByKeyword(String keyword) {
+        return productRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword);
+    }
 }
