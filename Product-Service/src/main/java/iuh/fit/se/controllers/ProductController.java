@@ -199,4 +199,18 @@ public class ProductController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    @GetMapping("/products/category/{categoryId}")
+    public ResponseEntity<List<Product>> getProductsByCategory(@PathVariable("categoryId") Long categoryId) {
+        try {
+            List<Product> products = productService.getProductsByCategoryId(categoryId);
+            if (products.isEmpty()) {
+                return new ResponseEntity<>(Collections.emptyList(), HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(products, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(Collections.emptyList(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }
