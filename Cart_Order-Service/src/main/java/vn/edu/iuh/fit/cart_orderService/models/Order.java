@@ -16,10 +16,8 @@ public class Order {
     private String status;
     private LocalDate createAt;
 
-    @ManyToOne
     @JoinColumn(name = "user_id")
-    @JsonIgnore
-    private User user;
+    private Long userId;
 
     @OneToMany(mappedBy = "order")
     private List<OrderDetail> orderDetails;
@@ -29,9 +27,9 @@ public class Order {
     private PaymentMethod paymentMethod;
 
 
-    @ManyToOne
-    @JoinColumn(name = "shipping_address_id")
-    private ShippingAddress shippingAddress;
+//    @ManyToOne
+//    @JoinColumn(name = "shipping_address_id")
+//    private ShippingAddress shippingAddress;
 
 
     public long getId() {
@@ -66,12 +64,12 @@ public class Order {
         this.createAt = createAt;
     }
 
-    public User getUser() {
-        return user;
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public List<OrderDetail> getOrderDetails() {
@@ -90,11 +88,11 @@ public class Order {
         this.paymentMethod = paymentMethod;
     }
 
-    public ShippingAddress getShippingAddress() {
-        return shippingAddress;
-    }
-
-    public void setShippingAddress(ShippingAddress shippingAddress) {
-        this.shippingAddress = shippingAddress;
-    }
+//    public ShippingAddress getShippingAddress() {
+//        return shippingAddress;
+//    }
+//
+//    public void setShippingAddress(ShippingAddress shippingAddress) {
+//        this.shippingAddress = shippingAddress;
+//    }
 }

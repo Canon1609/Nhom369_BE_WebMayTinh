@@ -23,37 +23,42 @@ public class CartResource {
     }
 
     @PostMapping("/addProductToCart")
-    public ResponseEntity<Response> addProductToCart(@RequestBody AddToCartRequest request) {
-        log.info("Call cartDetail insert");
+    public ResponseEntity<Response> addProductToCart(@RequestBody AddToCartRequest request,
+                                                     @RequestHeader("Authorization") String token) {
+        log.info("Call add product to cart");
         try {
-            Long userId = request.getUserId();
             Long productId = request.getProductId();
             Integer quantity = request.getQuantity();
-            Optional<Cart> cart = cartService.handleAddProductToCart(userId, productId, quantity);
+
+            Cart cart = cartService.handleAddProductToCart(token, productId, quantity);
+
+            System.out.println("Cart resource: " + cart);
+
             return ResponseEntity.ok(new Response(
                     HttpStatus.OK.value(),
-                    "Insert cartDetail success",
+                    "Add product to cart success",
                     cart
             ));
         } catch (Exception e) {
             log.error("Insert cartDetail fail");
             log.error("Error: " + e);
-            return ResponseEntity.ok(new Response(
-                    HttpStatus.OK.value(),
-                    "Insert cartDetail fail",
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Response(
+                    HttpStatus.UNAUTHORIZED.value(),
+                    "Add product to cart fail: " + e.getMessage(),
                     null
             ));
         }
     }
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<Response> getCart(@PathVariable Long userId) {
+    @GetMapping("/getCart")
+    public ResponseEntity<Response> getCart(@RequestHeader("Authorization") String token) {
         log.info("Call get cart");
         try {
-            Cart cart = cartService.handleGetCart(userId);
-            if(cart == null){
-                return ResponseEntity.ok(new Response(
-                        HttpStatus.OK.value(),
+            // Xử lý lấy giỏ hàng
+            Cart cart = cartService.handleGetCart(token);
+            if (cart == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Response(
+                        HttpStatus.NOT_FOUND.value(),
                         "User does not have cart",
                         null
                 ));
@@ -64,38 +69,50 @@ public class CartResource {
                         cart
                 ));
             }
-
         } catch (Exception e) {
             log.error("Get cart fail");
             log.error("Error: " + e);
-            return ResponseEntity.ok(new Response(
-                    HttpStatus.OK.value(),
-                    "Get cart fail",
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Response(
+                    HttpStatus.UNAUTHORIZED.value(),
+                    "Get cart fail: " + e.getMessage(),
                     null
             ));
         }
     }
 
     @PostMapping("/removeProductFromCart/{cartDetailId}")
-    public ResponseEntity<Response> removeProductFromCart(@PathVariable Long cartDetailId) {
+    public ResponseEntity<Response> removeProductFromCart(@PathVariable Long cartDetailId, @RequestHeader("Authorization") String token) {
         log.info("Call remove product from cart");
+
         try {
-            Cart cart = cartService.handleRemoveProductFromCart(cartDetailId);
+            // Gọi service để xử lý việc xóa sản phẩm khỏi giỏ hàng
+            Cart updatedCart = cartService.handleRemoveProductFromCart(token, cartDetailId);
+
+            // Kiểm tra xem có sản phẩm nào còn lại trong giỏ hàng sau khi xóa hay không
+            if (updatedCart == null ) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response(
+                        HttpStatus.BAD_REQUEST.value(),
+                        "CartDetail not found",
+                        null
+                ));
+            }
+
+            // Trả về giỏ hàng đã được cập nhật
             return ResponseEntity.ok(new Response(
                     HttpStatus.OK.value(),
                     "Remove product from cart success",
-                    cart
+                    updatedCart
             ));
         } catch (Exception e) {
-            log.error("Remove product from cart fail");
-            log.error("Error: " + e);
-            return ResponseEntity.ok(new Response(
-                    HttpStatus.OK.value(),
-                    "Remove product from cart fail",
+            log.error("Remove product from cart failed", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response(
+                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    "Remove product from cart failed",
                     null
             ));
         }
     }
+
 
 
 }

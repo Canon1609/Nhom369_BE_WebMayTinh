@@ -1,35 +1,32 @@
 package vn.edu.iuh.fit.cart_orderService.models;
 
-import jakarta.persistence.*;
-
-import java.util.List;
-
-@Entity
-@Table(name = "users")
 public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String fullName;
-    private String email;
-    private String password;
-    private String address;
-    private String phone;
-    private String avatar;
+    private String username;
+    private String name ;
+    private String email ;
+    private String password ;
+    private String address ;
+    private String phone ;
+    private String avt ;
+    private String refreshToken;
+    private String role;
 
-    @ManyToOne
-    @JoinColumn(name = "role_id")
-    private Role role;
+    public User() {
+    }
 
-    @OneToMany(mappedBy = "user")
-    private List<Order> orders;
-
-    @OneToOne(mappedBy = "user")
-    private Cart cart;
-
-    @OneToMany(mappedBy = "user")
-    private List<ShippingAddress> shippingAddresses;
-
+    public User(Long id, String username, String name, String email, String password, String address, String phone, String avt, String refreshToken, String role) {
+        this.id = id;
+        this.username = username;
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.address = address;
+        this.phone = phone;
+        this.avt = avt;
+        this.refreshToken = refreshToken;
+        this.role = role;
+    }
 
     public Long getId() {
         return id;
@@ -39,12 +36,20 @@ public class User {
         this.id = id;
     }
 
-    public String getFullName() {
-        return fullName;
+    public String getUsername() {
+        return username;
     }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getEmail() {
@@ -79,43 +84,43 @@ public class User {
         this.phone = phone;
     }
 
-    public String getAvatar() {
-        return avatar;
+    public String getAvt() {
+        return avt;
     }
 
-    public void setAvatar(String avatar) {
-        this.avatar = avatar;
+    public void setAvt(String avt) {
+        this.avt = avt;
     }
 
-    public Role getRole() {
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
+    public String getRole() {
         return role;
     }
 
-    public void setRole(Role role) {
+    public void setRole(String role) {
         this.role = role;
     }
 
-    public List<Order> getOrders() {
-        return orders;
-    }
-
-    public void setOrders(List<Order> orders) {
-        this.orders = orders;
-    }
-
-    public Cart getCart() {
-        return cart;
-    }
-
-    public void setCart(Cart cart) {
-        this.cart = cart;
-    }
-
-    public List<ShippingAddress> getShippingAddresses() {
-        return shippingAddresses;
-    }
-
-    public void setShippingAddresses(List<ShippingAddress> shippingAddresses) {
-        this.shippingAddresses = shippingAddresses;
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", address='" + address + '\'' +
+                ", phone='" + phone + '\'' +
+                ", avt='" + avt + '\'' +
+                ", refreshToken='" + refreshToken + '\'' +
+                ", role='" + role + '\'' +
+                '}';
     }
 }

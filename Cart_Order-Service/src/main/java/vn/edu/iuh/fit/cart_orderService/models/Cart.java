@@ -12,26 +12,23 @@ public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-//    private double totalPrice;
-//    private String status;
-//    private LocalDate createAt;
+
     private int sum;
-    @OneToOne
+
     @JoinColumn(name = "user_id")
-    @JsonIgnore
-    private User user;
+    private Long userId;
 
     @OneToMany(mappedBy = "cart", fetch = FetchType.EAGER,  orphanRemoval = true)
     private List<CartDetail> cartDetails;
 
-    public Cart(long id, int sum, User user, List<CartDetail> cartDetails) {
-        this.id = id;
-        this.sum = sum;
-        this.user = user;
-        this.cartDetails = cartDetails;
+    public Cart() {
     }
 
-    public Cart() {
+    public Cart(long id, int sum, Long userId, List<CartDetail> cartDetails) {
+        this.id = id;
+        this.sum = sum;
+        this.userId = userId;
+        this.cartDetails = cartDetails;
     }
 
     public long getId() {
@@ -50,12 +47,12 @@ public class Cart {
         this.sum = sum;
     }
 
-    public User getUser() {
-        return user;
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public List<CartDetail> getCartDetails() {

@@ -1,14 +1,8 @@
 package vn.edu.iuh.fit.cart_orderService.models;
 
-import jakarta.persistence.*;
 
-import java.util.List;
 
-@Entity
-@Table(name = "products")
 public class Product {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     private String name;
@@ -17,16 +11,6 @@ public class Product {
     private String description;
     private long quantity;
     private String factory;
-
-    @OneToMany(mappedBy = "product")
-    private List<OrderDetail> orderDetails;
-
-    @OneToMany(mappedBy = "product")
-    private List<CartDetail> cartDetails;
-
-    @ManyToOne
-    @JoinColumn(name = "category_id")
-    private Category category;
 
     public long getId() {
         return id;
@@ -84,27 +68,16 @@ public class Product {
         this.factory = factory;
     }
 
-    public List<OrderDetail> getOrderDetails() {
-        return orderDetails;
-    }
-
-    public void setOrderDetails(List<OrderDetail> orderDetails) {
-        this.orderDetails = orderDetails;
-    }
-
-    public List<CartDetail> getCartDetails() {
-        return cartDetails;
-    }
-
-    public void setCartDetails(List<CartDetail> cartDetails) {
-        this.cartDetails = cartDetails;
-    }
-
-    public Category getCategory() {
-        return category;
-    }
-
-    public void setCategory(Category category) {
-        this.category = category;
+    @Override
+    public String toString() {
+        return "Product{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", price=" + price +
+                ", image='" + image + '\'' +
+                ", description='" + description + '\'' +
+                ", quantity=" + quantity +
+                ", factory='" + factory + '\'' +
+                '}';
     }
 }
