@@ -2,8 +2,6 @@ package iuh.fit.se.models;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-
-
 import java.util.List;
 
 @Entity
@@ -14,6 +12,7 @@ public class Category {
     private Long id;
     private String name;
     private String description;
+    private String image; // Thêm trường image
 
     @OneToMany(mappedBy = "category")
     @JsonManagedReference
@@ -28,6 +27,14 @@ public class Category {
 
     }
 
+    // Getter và Setter cho trường image
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
 
     public Long getId() {
         return id;

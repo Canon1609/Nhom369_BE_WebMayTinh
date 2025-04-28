@@ -2,14 +2,15 @@ CREATE DATABASE product_db
 
 USE product_db
 
-INSERT INTO categories (name, description) VALUES
-('Laptop', 'Các loại laptop văn phòng, gaming'),
-('Linh kiện PC', 'CPU, RAM, SSD, VGA'),
-('Màn hình', 'Màn hình LCD, LED, gaming'),
-('Chuột & Bàn phím', 'Chuột gaming, bàn phím cơ, phụ kiện nhập liệu'),
-('Thiết bị lưu trữ', 'Ổ cứng HDD, SSD, USB, thẻ nhớ'),
-('Phụ kiện khác', 'Tai nghe, webcam, đế tản nhiệt, balo laptop'),
-('Điện thoại', 'Điện thoại thông minh các hãng Apple, Samsung, Xiaomi...');
+INSERT INTO categories (name, description, image) VALUES
+('Laptop', 'Các loại laptop văn phòng, gaming', 'https://up-load-file-tranquocanh.s3.ap-southeast-2.amazonaws.com/laptop.jpg'),
+('Linh kiện PC', 'CPU, RAM, SSD, VGA', 'https://up-load-file-tranquocanh.s3.ap-southeast-2.amazonaws.com/cpui9.jpg'),
+('Màn hình', 'Màn hình LCD, LED, gaming', 'https://up-load-file-tranquocanh.s3.ap-southeast-2.amazonaws.com/manhinh.jpg'),
+('Chuột & Bàn phím', 'Chuột gaming, bàn phím cơ, phụ kiện nhập liệu', 'https://up-load-file-tranquocanh.s3.ap-southeast-2.amazonaws.com/banphim.jpg'),
+('Thiết bị lưu trữ', 'Ổ cứng HDD, SSD, USB, thẻ nhớ', 'https://up-load-file-tranquocanh.s3.ap-southeast-2.amazonaws.com/ssd.jpg'),
+('Phụ kiện khác', 'Tai nghe, webcam, đế tản nhiệt, balo laptop', 'https://up-load-file-tranquocanh.s3.ap-southeast-2.amazonaws.com/tainghe.jpg'),
+('Điện thoại', 'Điện thoại thông minh các hãng Apple, Samsung, Xiaomi...', 'https://up-load-file-tranquocanh.s3.ap-southeast-2.amazonaws.com/iphone.jpg');
+
 
 INSERT INTO products (name, price, image, description, quantity, factory, category_id) VALUES
 ('Laptop Dell XPS 15', 35000000, 'https://up-load-file-tranquocanh.s3.ap-southeast-2.amazonaws.com/laptop.jpg', 'Laptop Dell hiệu năng cao', 10, 'Dell', 1),
@@ -30,4 +31,4 @@ INSERT INTO products (name, price, image, description, quantity, factory, catego
 SELECT * FROM categories;
 SELECT * FROM products;
 
-USE product_db_service
+
