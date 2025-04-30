@@ -1,13 +1,19 @@
 package fit.iuh.controllers;
 
+import fit.iuh.models.Address;
+import fit.iuh.models.ProductFavorite;
 import fit.iuh.models.User;
 import fit.iuh.security.JwtUtil;
+import fit.iuh.services.AddressService;
+import fit.iuh.services.ProductFavotiteService;
 import fit.iuh.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,9 +25,18 @@ public class UserController {
     @Autowired
     private UserService userService;
     @Autowired
+    private AddressService  addressService;
+    @Autowired
     private JwtUtil jwtUtil;
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    private final String PRODUCT_SERVICE_URL = "http://localhost:8082/api/products";
+    @Autowired
+    private ProductFavotiteService productFavotiteService;
 
     @GetMapping("/")
     public ResponseEntity<Map<String, Object>> getListUser(@RequestHeader("Authorization") String authHeader) {
@@ -62,7 +77,7 @@ public class UserController {
                 userInfo.put("username", user.getUsername());
                 userInfo.put("role", user.getRole());
                 userInfo.put("email", user.getEmail());
-                userInfo.put("name", user.getName());
+//                userInfo.put("name", user.getName());
                 userInfo.put("avt", user.getAvt());
                 response.put("data", listUsers);
             });
@@ -107,13 +122,30 @@ public class UserController {
                 response.put("message", "Người dùng không tồn tại");
                 return ResponseEntity.status(404).body(response);
             }
+
+            // Lấy thông tin các địa chỉ của người dùng
+            List<Address> addresses = addressService.getAddressesByUserId(user.getId());
+
             // Trả về thông tin người dùng
             Map<String, Object> userInfo = new HashMap<>();
             userInfo.put("username", user.getUsername());
             userInfo.put("email", user.getEmail());
             userInfo.put("id", user.getId());
             userInfo.put("avatar", user.getAvt());
+            userInfo.put("phone", user.getPhone());
+            userInfo.put("role", user.getRole());
             response.put("message" , "lấy thông tin người dùng thành công");
+            // Tạo danh sách địa chỉ
+            List<Map<String, String>> addressList = addresses.stream().map(address -> {
+                Map<String, String> addressInfo = new HashMap<>();
+                addressInfo.put("id", String.valueOf(address.getId()));
+                addressInfo.put("street", address.getStreet());
+                addressInfo.put("city", address.getCity());
+                return addressInfo;
+            }).toList();
+
+            // Thêm địa chỉ vào thông tin người dùng
+            userInfo.put("addresses", addressList);
             response.put("user", userInfo);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -189,46 +221,46 @@ public class UserController {
                 response.put("message", "Không được phép cập nhật ID của người dùng");
                 return ResponseEntity.status(400).body(response);
             }
-            if(updates.get("email") != null) {
-                String newEmail = (String) updates.get("email");
-                user.setEmail(newEmail);
-            }
-            if(updates.get("avt") != null) {
-                String newAvt = (String) updates.get("avt");
-                user.setAvt(newAvt);
-            }
-            if(updates.get("username") != null) {
-                String newUsername = (String) updates.get("username");
-                User isExistUser = userService.finByUserName(newUsername);
-                if(isExistUser != null) {
-                    response.put("message" , "tên người dùng đã tồn tại");
-                    return ResponseEntity.status(400).body(response);
-                }
-            }
-            if(updates.get("address") != null) {
-                String newAddress = (String) updates.get("address");
-                user.setAddress(newAddress);
-            }
+//            if(updates.get("email") != null) {
+//                String newEmail = (String) updates.get("email");
+//                user.setEmail(newEmail);
+//            }
+//            if(updates.get("avt") != null) {
+//                String newAvt = (String) updates.get("avt");
+//                user.setAvt(newAvt);
+//            }
+//            if(updates.get("username") != null) {
+//                String newUsername = (String) updates.get("username");
+//                User isExistUser = userService.finByUserName(newUsername);
+//                if(isExistUser != null) {
+//                    response.put("message" , "tên người dùng đã tồn tại");
+//                    return ResponseEntity.status(400).body(response);
+//                }
+//            }
+//            if(updates.get("address") != null) {
+//                String newAddress = (String) updates.get("address");
+//                user.setAddress(newAddress);
+//            }
             if(updates.get("phone") != null) {
                 String newPhone = (String) updates.get("phone");
                 user.setPhone(newPhone);
             }
-            if (updates.get("password") != null) {
-                String newPassword = (String) updates.get("password");
-                user.setPassword(newPassword);
-            }
-            if(updates.get("name") != null) {
-                String newName = (String) updates.get("name");
-                user.setName(newName);
-            }
+//            if (updates.get("password") != null) {
+//                String newPassword = (String) updates.get("password");
+//                user.setPassword(newPassword);
+//            }
+//            if(updates.get("name") != null) {
+//                String newName = (String) updates.get("name");
+//                user.setName(newName);
+//            }
             userService.updateUser(user);
             // tạo user DTO trả về cho client
-            userInfo.put("name" , user.getName());
+//            userInfo.put("name" , user.getName());
             userInfo.put("username", user.getUsername());
-            userInfo.put("email", user.getEmail());
-            userInfo.put("address", user.getAddress());
+//            userInfo.put("email", user.getEmail());
+//            userInfo.put("address", user.getAddress());
             userInfo.put("phone", user.getPhone());
-            userInfo.put("avt", user.getAvt());
+//            userInfo.put("avt", user.getAvt());
 
 
             response.put("status", "success");
@@ -291,6 +323,232 @@ public class UserController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("message", "Lỗi hệ thống" + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    @GetMapping("/getAddressByUser")
+    public ResponseEntity<Map<String, Object>> getAddressByUser(@RequestHeader("Authorization") String authHeader) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                response.put("message", "Thiếu hoặc sai định dạng Authorization header");
+            }
+            String token = authHeader.substring(7);
+            String username = jwtUtil.extractUsername(token);
+            if (username == null) {
+                response.put("message" , "Token không hợp lệ hoặc hết hạn");
+            }
+
+            User user = userService.finByUserName(username);
+
+            if (user == null) {
+                response.put("message", "User not found");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            // Lấy các địa chỉ của người dùng từ cơ sở dữ liệu
+            List<Address> addresses = addressService.getAddressesByUserId(user.getId());
+
+//            response.put("user", user);
+            response.put("addresses", addresses);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("message", "Error: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    // API POST để thêm một địa chỉ cho người dùng
+    @PostMapping("/addAddress")
+    public ResponseEntity<Map<String, Object>> addAddress(@RequestHeader("Authorization") String authHeader,
+                                                          @RequestBody Address addressRequest) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                response.put("message", "Thiếu hoặc sai định dạng Authorization header");
+            }
+            String token = authHeader.substring(7);
+            String username = jwtUtil.extractUsername(token);
+            if (username == null) {
+                response.put("message" , "Token không hợp lệ hoặc hết hạn");
+            }
+
+            User user = userService.finByUserName(username);
+
+            if (user == null) {
+                response.put("message", "User not found");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            // Gán user vào địa chỉ mới
+            addressRequest.setUser(user);
+
+            // Lưu địa chỉ vào cơ sở dữ liệu
+            Address savedAddress = addressService.saveAddress(addressRequest);
+
+            response.put("message", "Address added successfully");
+            response.put("address", savedAddress);
+            return ResponseEntity.status(201).body(response);
+        } catch (Exception e) {
+            response.put("message", "Error: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+
+    // API DELETE để xóa một địa chỉ
+    @DeleteMapping("/deleteAddress/{addressId}")
+    public ResponseEntity<Map<String, Object>> deleteAddress(@RequestHeader("Authorization") String authHeader,
+                                                             @PathVariable Long addressId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                response.put("message", "Thiếu hoặc sai định dạng Authorization header");
+            }
+            String token = authHeader.substring(7);
+            String username = jwtUtil.extractUsername(token);
+            if (username == null) {
+                response.put("message" , "Token không hợp lệ hoặc hết hạn");
+            }
+
+            User user = userService.finByUserName(username);
+
+            if (user == null) {
+                response.put("message", "User not found");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            // Kiểm tra xem địa chỉ có tồn tại và thuộc về người dùng không
+            Address address = addressService.getAddressById(addressId);
+
+            if (address == null) {
+                response.put("message", "Address not found");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            if (address.getUser().getId() != user.getId()) {
+                response.put("message", "Unauthorized: You do not have permission to delete this address");
+                return ResponseEntity.status(403).body(response);
+            }
+
+            // Xóa địa chỉ
+            addressService.deleteAddress(addressId);
+
+            response.put("message", "Address deleted successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("message", "Error: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+
+    // API PUT để cập nhật địa chỉ
+    @PutMapping("/updateAddress/{addressId}")
+    public ResponseEntity<Map<String, Object>> updateAddress(@RequestHeader("Authorization") String authHeader,
+                                                             @PathVariable Long addressId,
+                                                             @RequestBody Address addressRequest) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                response.put("message", "Thiếu hoặc sai định dạng Authorization header");
+            }
+            String token = authHeader.substring(7);
+            String username = jwtUtil.extractUsername(token);
+            if (username == null) {
+                response.put("message" , "Token không hợp lệ hoặc hết hạn");
+            }
+
+            User user = userService.finByUserName(username);
+            if (user == null) {
+                response.put("message", "Người dùng không tồn tại");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            // Lấy địa chỉ hiện tại từ cơ sở dữ liệu
+            Address address = addressService.getAddressById(addressId);
+            if (address == null) {
+                response.put("message", "Địa chỉ không tồn tại");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            // Kiểm tra xem địa chỉ có thuộc về người dùng này không
+            if (address.getUser().getId() != user.getId()) {
+                response.put("message", "Bạn không có quyền sửa địa chỉ này");
+                return ResponseEntity.status(403).body(response);
+            }
+
+            // Cập nhật thông tin địa chỉ
+            address.setStreet(addressRequest.getStreet());
+            address.setCity(addressRequest.getCity());
+
+            // Lưu cập nhật vào cơ sở dữ liệu
+            addressService.saveAddress(address);
+
+            response.put("message", "Cập nhật địa chỉ thành công");
+            response.put("address", address);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("message", "Lỗi hệ thống: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+
+    // API POST để thêm sản phẩm yêu thích cho người dùng
+    @PostMapping("/addFavoriteProduct/{productId}")
+    public ResponseEntity<Map<String, Object>> addFavoriteProduct(@RequestHeader("Authorization") String authHeader,
+                                                                  @PathVariable Long productId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                response.put("message", "Thiếu hoặc sai định dạng Authorization header");
+            }
+            String token = authHeader.substring(7);
+            String username = jwtUtil.extractUsername(token);
+            if (username == null) {
+                response.put("message" , "Token không hợp lệ hoặc hết hạn");
+            }
+
+            User user = userService.finByUserName(username);
+            if (user == null) {
+                response.put("message", "Người dùng không tồn tại");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            // Gọi dịch vụ sản phẩm để lấy thông tin sản phẩm
+//            String productUrl = PRODUCT_SERVICE_URL + favoriteProductRequest.getProductId();
+//            ProductFavorite product = restTemplate.getForObject(productUrl, ProductFavorite.class);
+            ProductFavorite product = restTemplate.getForObject(PRODUCT_SERVICE_URL + "/" + productId, ProductFavorite.class);
+            System.out.println("Product: " + product);
+
+            if (product == null) {
+                response.put("message", "Sản phẩm không tồn tại");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            // Tạo một sản phẩm yêu thích mới
+            ProductFavorite favoriteProduct = new ProductFavorite();
+            favoriteProduct.setUser(user);
+            favoriteProduct.setProductId(productId);
+            favoriteProduct.setName(product.getName());
+            favoriteProduct.setPrice(product.getPrice());
+
+            System.out.println("Product Name: " + product.getName());
+
+
+
+            // Lưu sản phẩm yêu thích vào cơ sở dữ liệu
+            ProductFavorite savedFavoriteProduct = productFavotiteService.saveFavoriteProduct(favoriteProduct);
+
+            response.put("message", "Sản phẩm yêu thích đã được thêm thành công");
+            response.put("favoriteProduct", savedFavoriteProduct);
+            return ResponseEntity.status(201).body(response);
+
+        } catch (Exception e) {
+            response.put("message", "Lỗi hệ thống: " + e.getMessage());
             return ResponseEntity.status(500).body(response);
         }
     }

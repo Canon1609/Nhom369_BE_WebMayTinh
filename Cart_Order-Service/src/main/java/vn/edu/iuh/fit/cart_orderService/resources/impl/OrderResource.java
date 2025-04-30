@@ -8,6 +8,7 @@ import vn.edu.iuh.fit.cart_orderService.dto.CreateOderRequest;
 import vn.edu.iuh.fit.cart_orderService.dto.UpdateOderRequest;
 import vn.edu.iuh.fit.cart_orderService.models.Cart;
 import vn.edu.iuh.fit.cart_orderService.models.Order;
+import vn.edu.iuh.fit.cart_orderService.models.Product;
 import vn.edu.iuh.fit.cart_orderService.models.Response;
 import vn.edu.iuh.fit.cart_orderService.resources.IManagement;
 import vn.edu.iuh.fit.cart_orderService.services.impl.OrderService;
@@ -25,29 +26,57 @@ public class OrderResource {
         this.orderService = orderService;
     }
 
+//    @PostMapping("/placeOrder")
+//    public ResponseEntity<Response> insert(@RequestBody CreateOderRequest request, @RequestHeader("Authorization") String token) {
+//        log.info("Call order insert");
+//        try {
+////            Long UserId = request.getUserId();
+////            Long AddressId = request.getAddressId();
+//            Long PaymentId = request.getPaymentMethodId();
+//            Order ouput = orderService.handlePlaceOrder(token, PaymentId);
+//            log.info("Insert order success");
+//            return ResponseEntity.ok(new Response(
+//                    200,
+//                    "Insert order success",
+//                    ouput
+//            ));
+//        } catch (Exception e) {
+//            log.error("Insert order fail");
+//            log.error("Error: " + e);
+//            return ResponseEntity.ok(new Response(
+//                    200,
+//                    "Insert order fail",
+//                    null
+//            ));
+//        }
+//    }
+
     @PostMapping("/placeOrder")
-    public ResponseEntity<Response> insert(@RequestBody CreateOderRequest request, @RequestHeader("Authorization") String token) {
-        log.info("Call order insert");
-        try {
-//            Long UserId = request.getUserId();
-//            Long AddressId = request.getAddressId();
-            Long PaymentId = request.getPaymentMethodId();
-            Order ouput = orderService.handlePlaceOrder(token, PaymentId);
-            log.info("Insert order success");
+    public ResponseEntity<?> placeOrder(
+            @RequestHeader("Authorization") String token,
+            @RequestBody CreateOderRequest request
+    ) {
+        log.info("Call place order");
+      try{
+          Long paymentMethodId = request.getPaymentMethodId();
+          List<Product> products = request.getProducts();
+          String shippingAddress = request.getShippingAddress();
+          Order order = orderService.placeOrder(token, paymentMethodId, shippingAddress , products);
             return ResponseEntity.ok(new Response(
-                    200,
-                    "Insert order success",
-                    ouput
+                    HttpStatus.OK.value(),
+                    "Place order success",
+                    order
             ));
-        } catch (Exception e) {
-            log.error("Insert order fail");
-            log.error("Error: " + e);
-            return ResponseEntity.ok(new Response(
-                    200,
-                    "Insert order fail",
-                    null
-            ));
-        }
+      } catch (Exception e) {
+          log.error("Place order fail");
+          log.error("Error: " + e);
+          return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Response(
+                  HttpStatus.UNAUTHORIZED.value(),
+                  "APlace order fail: " + e.getMessage(),
+                  null
+          ));
+
+      }
     }
 
     @GetMapping("/getOrders")

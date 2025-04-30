@@ -19,17 +19,16 @@ public class Order {
     @JoinColumn(name = "user_id")
     private Long userId;
 
-    @OneToMany(mappedBy = "order")
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderDetail> orderDetails;
 
     @ManyToOne
     @JoinColumn(name = "payment_method_id")
     private PaymentMethod paymentMethod;
 
+    private String shippingAddress;
 
-//    @ManyToOne
-//    @JoinColumn(name = "shipping_address_id")
-//    private ShippingAddress shippingAddress;
+
 
 
     public long getId() {
@@ -88,11 +87,12 @@ public class Order {
         this.paymentMethod = paymentMethod;
     }
 
-//    public ShippingAddress getShippingAddress() {
-//        return shippingAddress;
-//    }
-//
-//    public void setShippingAddress(ShippingAddress shippingAddress) {
-//        this.shippingAddress = shippingAddress;
-//    }
+    public String getShippingAddress() {
+        return shippingAddress;
+    }
+
+    public void setShippingAddress(String shippingAddress) {
+        this.shippingAddress = shippingAddress;
+    }
+
 }

@@ -9,6 +9,7 @@ import vn.edu.iuh.fit.cart_orderService.repositories.*;
 import vn.edu.iuh.fit.cart_orderService.services.IService;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -79,69 +80,123 @@ public class OrderService {
         return null;
     }
 
-    public Order handlePlaceOrder(String token,  Long paymentMethodId) {
+//    public Order handlePlaceOrder(String token,  Long paymentMethodId) {
+//        User userDto = getUserFromToken(token);
+//        if (userDto == null) {
+//            // Nếu không tìm thấy thông tin người dùng từ token, trả về null hoặc có thể ném exception
+//            throw new RuntimeException("Invalid token or user not found");
+//        }
+//
+//        Cart cart = cartRepository.findByUserId(userDto.getId());
+//        if (cart == null) {
+//            throw new RuntimeException("Cart not found for the user");
+//        }
+//
+//        List<CartDetail> cartDetails = cartDetailRepository.findByCart(cart);
+//        if (cartDetails.isEmpty()) {
+//            throw new RuntimeException("No products in the cart");
+//        }
+//
+//        // Tìm PaymentMethod và kiểm tra nếu không tìm thấy
+//        Optional<PaymentMethod> optionalPaymentMethod = paymentMethodRepository.findById(paymentMethodId);
+//        if (!optionalPaymentMethod.isPresent()) {
+//            throw new RuntimeException("Payment method not found");
+//        }
+//        PaymentMethod paymentMethod = optionalPaymentMethod.get();
+//
+//        // Tạo Order
+//        Order order = new Order();
+//        order.setCreateAt(LocalDate.now());
+//        order.setUserId(userDto.getId());
+//        order.setStatus("PENDING");
+//        order.setPaymentMethod(paymentMethod);
+//
+//        double sum = 0;
+//        for (CartDetail cartDetail : cartDetails) {
+//            sum += cartDetail.getPrice() * cartDetail.getQuantity();
+//        }
+//        order.setTotalPrice(sum);
+//
+//        // Lưu Order vào cơ sở dữ liệu
+//        order = orderRepository.save(order);
+//
+//        // Tạo OrderDetail từ CartDetail
+//        List<OrderDetail> orderDetails = new ArrayList<>();
+//        for (CartDetail cartDetail : cartDetails) {
+//            OrderDetail orderDetail = new OrderDetail();
+//            orderDetail.setOrder(order);
+//            orderDetail.setProductId(cartDetail.getProductId());  // Đảm bảo có thông tin sản phẩm
+//            orderDetail.setQuantity(cartDetail.getQuantity());
+//            orderDetail.setPrice(cartDetail.getPrice());
+//            orderDetails.add(orderDetail);
+//            orderDetailRepository.save(orderDetail);
+//        }
+//        order.setOrderDetails(orderDetails);
+//
+//        // Xóa các CartDetail
+//        for (CartDetail cartDetail : cartDetails) {
+//            cart.getCartDetails().remove(cartDetail); // Xóa khỏi list để tránh tham chiếu
+//            cartDetailRepository.delete(cartDetail); // Xóa tay
+//        }
+//
+//        // Xóa Cart
+//        cartRepository.delete(cart); // Sau khi xóa các chi tiết giỏ hàng, xóa giỏ hàng
+//        return order;
+//    }
+
+
+    public Order placeOrder(String token,  Long paymentMethodId, String shippingAddress , List<Product> orderProductRequest) {
         User userDto = getUserFromToken(token);
         if (userDto == null) {
             // Nếu không tìm thấy thông tin người dùng từ token, trả về null hoặc có thể ném exception
             throw new RuntimeException("Invalid token or user not found");
+//            return false;
         }
 
-        Cart cart = cartRepository.findByUserId(userDto.getId());
-        if (cart == null) {
-            throw new RuntimeException("Cart not found for the user");
+        if (orderProductRequest == null || orderProductRequest.isEmpty())
+            throw new RuntimeException("Order product request is empty");
+        Order order = new Order();
+        order.setUserId(userDto.getId());
+        order.setCreateAt(LocalDate.now());
+        List<OrderDetail> orderDetails = new ArrayList<>();
+        Double totalPrice = 0.0;
+        // Gọi API ProductService để lấy thông tin sản phẩm
+        for (Product item : orderProductRequest) {
+            // Gọi Product Service để lấy thông tin sản phẩm theo ID
+            Product product = restTemplate.getForObject(PRODUCT_SERVICE_URL + "/" + item.getId(), Product.class);
+
+            if (product != null) {
+                OrderDetail detail = new OrderDetail();
+                detail.setOrder(order);
+                detail.setProductId(product.getId());
+                detail.setQuantity(item.getQuantity());
+                detail.setPrice(product.getPrice());
+                detail.setProductName(product.getName());
+                totalPrice += product.getPrice() * item.getQuantity();
+                orderDetails.add(detail);
+            }
         }
 
-        List<CartDetail> cartDetails = cartDetailRepository.findByCart(cart);
-        if (cartDetails.isEmpty()) {
-            throw new RuntimeException("No products in the cart");
-        }
+
 
         // Tìm PaymentMethod và kiểm tra nếu không tìm thấy
         Optional<PaymentMethod> optionalPaymentMethod = paymentMethodRepository.findById(paymentMethodId);
         if (!optionalPaymentMethod.isPresent()) {
+            // Nếu không tìm thấy phương thức thanh toán, ném exception
             throw new RuntimeException("Payment method not found");
         }
-        PaymentMethod paymentMethod = optionalPaymentMethod.get();
-
-        // Tạo Order
-        Order order = new Order();
-        order.setCreateAt(LocalDate.now());
-        order.setUserId(userDto.getId());
-        order.setStatus("PENDING");
-        order.setPaymentMethod(paymentMethod);
-
-        double sum = 0;
-        for (CartDetail cartDetail : cartDetails) {
-            sum += cartDetail.getPrice() * cartDetail.getQuantity();
-        }
-        order.setTotalPrice(sum);
-
-        // Lưu Order vào cơ sở dữ liệu
-        order = orderRepository.save(order);
-
-        // Tạo OrderDetail từ CartDetail
-        List<OrderDetail> orderDetails = new ArrayList<>();
-        for (CartDetail cartDetail : cartDetails) {
-            OrderDetail orderDetail = new OrderDetail();
-            orderDetail.setOrder(order);
-            orderDetail.setProductId(cartDetail.getProductId());  // Đảm bảo có thông tin sản phẩm
-            orderDetail.setQuantity(cartDetail.getQuantity());
-            orderDetail.setPrice(cartDetail.getPrice());
-            orderDetails.add(orderDetail);
-            orderDetailRepository.save(orderDetail);
-        }
+        order.setPaymentMethod(optionalPaymentMethod.get());
         order.setOrderDetails(orderDetails);
+        order.setStatus("PENDING");
+        order.setTotalPrice(totalPrice);
+        order.setShippingAddress(shippingAddress);
 
-        // Xóa các CartDetail
-        for (CartDetail cartDetail : cartDetails) {
-            cart.getCartDetails().remove(cartDetail); // Xóa khỏi list để tránh tham chiếu
-            cartDetailRepository.delete(cartDetail); // Xóa tay
-        }
+        orderRepository.save(order);
 
-        // Xóa Cart
-        cartRepository.delete(cart); // Sau khi xóa các chi tiết giỏ hàng, xóa giỏ hàng
         return order;
     }
+
+
 
     public List<Order> handleGetOrderByUser(String token) {
         User userDto = getUserFromToken(token);
@@ -182,6 +237,7 @@ public class OrderService {
 
         // Cập nhật trạng thái của đơn hàng
         order.setStatus(status);
+
 
         // Lưu đơn hàng đã được cập nhật
         return orderRepository.save(order);

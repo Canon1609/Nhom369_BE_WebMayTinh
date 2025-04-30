@@ -2,6 +2,9 @@ package fit.iuh.models;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.List;
+
 @Data
 @Entity
 @Table(name = "users")
@@ -10,15 +13,22 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String username;
-    private String name ;
+//    private String name ;
     private String email ;
     private String password ;
-    private String address ;
+//    private String address ;
     private String phone ;
     private String avt ;
     private String refreshToken;
     private String role;
     // Getter và Setter cho username
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Address> addresses;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductFavorite> productFavorites;
+
     public String getUsername() {
         return username;
     }
@@ -50,13 +60,6 @@ public class User {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public String getEmail() {
         return email;
@@ -64,14 +67,6 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
     }
 
     public String getPhone() {
@@ -96,5 +91,21 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public List<Address> getAddresses() {
+        return addresses;
+    }
+
+    public void setAddresses(List<Address> addresses) {
+        this.addresses = addresses;
+    }
+
+    public List<ProductFavorite> getProductFavorites() {
+        return productFavorites;
+    }
+
+    public void setProductFavorites(List<ProductFavorite> productFavorites) {
+        this.productFavorites = productFavorites;
     }
 }
