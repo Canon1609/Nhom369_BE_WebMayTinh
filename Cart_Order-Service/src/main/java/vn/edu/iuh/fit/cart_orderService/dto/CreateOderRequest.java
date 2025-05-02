@@ -1,25 +1,20 @@
 package vn.edu.iuh.fit.cart_orderService.dto;
 
+import vn.edu.iuh.fit.cart_orderService.models.Product;
+
+import java.util.List;
+
 public class CreateOderRequest {
-    private Long userId;
-    private Long addressId;
+    private List<Product> products;
     private Long paymentMethodId;
+    private String shippingAddress;
 
-    public Long getUserId() {
-        return userId;
+    public List<Product> getProducts() {
+        return products;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-
-    public Long getAddressId() {
-        return addressId;
-    }
-
-    public void setAddressId(Long addressId) {
-        this.addressId = addressId;
+    public void setProducts(List<Product> products) {
+        this.products = products;
     }
 
     public Long getPaymentMethodId() {
@@ -28,5 +23,13 @@ public class CreateOderRequest {
 
     public void setPaymentMethodId(Long paymentMethodId) {
         this.paymentMethodId = paymentMethodId;
+    }
+
+    public String getShippingAddress() {
+        return shippingAddress;
+    }
+
+    public void setShippingAddress(String shippingAddress) {
+        this.shippingAddress = shippingAddress;
     }
 }

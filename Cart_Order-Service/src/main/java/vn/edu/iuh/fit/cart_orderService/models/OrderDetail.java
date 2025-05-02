@@ -2,9 +2,15 @@ package vn.edu.iuh.fit.cart_orderService.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(name = "order_details")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class OrderDetail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,10 +23,11 @@ public class OrderDetail {
     @JsonIgnore
     private Order order;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id")
-    @JsonIgnore
-    private Product product;
+    @Column(name = "product_id")
+    private Long productId;
+
+    @Column(name = "product_name")
+    private String productName;
 
     public long getId() {
         return id;
@@ -54,11 +61,19 @@ public class OrderDetail {
         this.order = order;
     }
 
-    public Product getProduct() {
-        return product;
+    public Long getProductId() {
+        return productId;
     }
 
-    public void setProduct(Product product) {
-        this.product = product;
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
     }
 }

@@ -16,22 +16,19 @@ public class Order {
     private String status;
     private LocalDate createAt;
 
-    @ManyToOne
     @JoinColumn(name = "user_id")
-    @JsonIgnore
-    private User user;
+    private Long userId;
 
-    @OneToMany(mappedBy = "order")
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderDetail> orderDetails;
 
     @ManyToOne
     @JoinColumn(name = "payment_method_id")
     private PaymentMethod paymentMethod;
 
+    private String shippingAddress;
 
-    @ManyToOne
-    @JoinColumn(name = "shipping_address_id")
-    private ShippingAddress shippingAddress;
+
 
 
     public long getId() {
@@ -66,12 +63,12 @@ public class Order {
         this.createAt = createAt;
     }
 
-    public User getUser() {
-        return user;
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public List<OrderDetail> getOrderDetails() {
@@ -90,11 +87,12 @@ public class Order {
         this.paymentMethod = paymentMethod;
     }
 
-    public ShippingAddress getShippingAddress() {
+    public String getShippingAddress() {
         return shippingAddress;
     }
 
-    public void setShippingAddress(ShippingAddress shippingAddress) {
+    public void setShippingAddress(String shippingAddress) {
         this.shippingAddress = shippingAddress;
     }
+
 }

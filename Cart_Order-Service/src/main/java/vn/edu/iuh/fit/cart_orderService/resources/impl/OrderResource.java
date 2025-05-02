@@ -1,11 +1,14 @@
 package vn.edu.iuh.fit.cart_orderService.resources.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.iuh.fit.cart_orderService.dto.CreateOderRequest;
 import vn.edu.iuh.fit.cart_orderService.dto.UpdateOderRequest;
+import vn.edu.iuh.fit.cart_orderService.models.Cart;
 import vn.edu.iuh.fit.cart_orderService.models.Order;
+import vn.edu.iuh.fit.cart_orderService.models.Product;
 import vn.edu.iuh.fit.cart_orderService.models.Response;
 import vn.edu.iuh.fit.cart_orderService.resources.IManagement;
 import vn.edu.iuh.fit.cart_orderService.services.impl.OrderService;
@@ -23,52 +26,121 @@ public class OrderResource {
         this.orderService = orderService;
     }
 
+//    @PostMapping("/placeOrder")
+//    public ResponseEntity<Response> insert(@RequestBody CreateOderRequest request, @RequestHeader("Authorization") String token) {
+//        log.info("Call order insert");
+//        try {
+////            Long UserId = request.getUserId();
+////            Long AddressId = request.getAddressId();
+//            Long PaymentId = request.getPaymentMethodId();
+//            Order ouput = orderService.handlePlaceOrder(token, PaymentId);
+//            log.info("Insert order success");
+//            return ResponseEntity.ok(new Response(
+//                    200,
+//                    "Insert order success",
+//                    ouput
+//            ));
+//        } catch (Exception e) {
+//            log.error("Insert order fail");
+//            log.error("Error: " + e);
+//            return ResponseEntity.ok(new Response(
+//                    200,
+//                    "Insert order fail",
+//                    null
+//            ));
+//        }
+//    }
+
     @PostMapping("/placeOrder")
-    public ResponseEntity<Response> insert(@RequestBody CreateOderRequest request) {
-        log.info("Call order insert");
-        try {
-            Long UserId = request.getUserId();
-            Long AddressId = request.getAddressId();
-            Long PaymentId = request.getPaymentMethodId();
-            Order ouput = orderService.handlePlaceOrder(UserId, AddressId, PaymentId);
-            log.info("Insert order success");
+    public ResponseEntity<?> placeOrder(
+            @RequestHeader("Authorization") String token,
+            @RequestBody CreateOderRequest request
+    ) {
+        log.info("Call place order");
+      try{
+          Long paymentMethodId = request.getPaymentMethodId();
+          List<Product> products = request.getProducts();
+          String shippingAddress = request.getShippingAddress();
+          Order order = orderService.placeOrder(token, paymentMethodId, shippingAddress , products);
             return ResponseEntity.ok(new Response(
-                    200,
-                    "Insert order success",
-                    ouput
+                    HttpStatus.OK.value(),
+                    "Place order success",
+                    order
             ));
+      } catch (Exception e) {
+          log.error("Place order fail");
+          log.error("Error: " + e);
+          return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Response(
+                  HttpStatus.UNAUTHORIZED.value(),
+                  "APlace order fail: " + e.getMessage(),
+                  null
+          ));
+
+      }
+    }
+
+    @GetMapping("/getOrders")
+    public ResponseEntity<Response> getOrders(@RequestHeader("Authorization") String token) {
+        log.info("Call get order");
+        try {
+            List<Order> order = orderService.handleGetOrderByUser(token);
+            if (order == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Response(
+                        HttpStatus.NOT_FOUND.value(),
+                        "User does not have order",
+                        null
+                ));
+            } else {
+                return ResponseEntity.ok(new Response(
+                        HttpStatus.OK.value(),
+                        "Get order success",
+                        order
+                ));
+            }
         } catch (Exception e) {
-            log.error("Insert order fail");
+            log.error("Get order fail");
             log.error("Error: " + e);
-            return ResponseEntity.ok(new Response(
-                    200,
-                    "Insert order fail",
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Response(
+                    HttpStatus.UNAUTHORIZED.value(),
+                    "Get order fail: " + e.getMessage(),
                     null
             ));
         }
     }
 
-    @PutMapping("/updateStatus/{orderId}")
-    public ResponseEntity<Response> updateStatus(@PathVariable Long orderId, @RequestBody UpdateOderRequest request) {
+    @PostMapping("/updateStatus/{orderId}")
+    public ResponseEntity<Response> updateStatus(@PathVariable Long orderId, @RequestBody UpdateOderRequest request, @RequestHeader("Authorization") String token) {
         log.info("Call order update status");
         try {
             String status = request.getStatus();
-            Order ouput = orderService.handleUpdateStatus(orderId, status);
+            Order output = orderService.handleUpdateStatus(token, orderId, status);
             log.info("Update order status success");
+
             return ResponseEntity.ok(new Response(
                     200,
                     "Update order status success",
-                    ouput
+                    output
+            ));
+        } catch (RuntimeException e) {
+            log.error("Update order status fail");
+            log.error("Error: " + e.getMessage(), e);
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response(
+                    400,
+                    "Update order status failed: " + e.getMessage(),
+                    null
             ));
         } catch (Exception e) {
             log.error("Update order status fail");
-            log.error("Error: " + e);
-            return ResponseEntity.ok(new Response(
-                    200,
-                    "Update order status fail",
+            log.error("Error: " + e.getMessage(), e);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response(
+                    500,
+                    "Internal server error",
                     null
             ));
         }
     }
+
 
 }

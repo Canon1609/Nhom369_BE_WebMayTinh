@@ -92,6 +92,7 @@ public class AuthController {
                userInfo.put("email", existingUser.getEmail());
                userInfo.put("id", existingUser.getId());
                userInfo.put("avatar", existingUser.getAvt());
+               userInfo.put("role", existingUser.getRole());
 
                response.put("tokens", tokens);
                response.put("user", userInfo);

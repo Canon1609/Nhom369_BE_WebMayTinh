@@ -13,8 +13,8 @@ import java.util.List;
 
 @Repository
 public interface CartDetailRepository extends JpaRepository<CartDetail, Long>{
-    @Query("select c from CartDetail c where c.cart = ?1 and c.product = ?2")
-    CartDetail findByCartAndProduct(Cart cart, Product product);
+    @Query("select c from CartDetail c where c.cart = ?1 and c.productId = ?2")
+    CartDetail findByCartAndProduct(Cart cart, Long productId);
 
     @Query("select c from CartDetail c where c.cart = ?1")
     List<CartDetail> findByCart(Cart cart);

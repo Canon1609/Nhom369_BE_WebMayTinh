@@ -1,7 +1,9 @@
 package fit.iuh.services;
 
 
+import fit.iuh.models.Address;
 import fit.iuh.models.User;
+import fit.iuh.repositories.AddressRepository;
 import fit.iuh.repositories.UserRepository;
 import fit.iuh.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,8 @@ import java.util.List;
 public class UserService {
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private AddressRepository addressRepository;
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     @Autowired
@@ -126,5 +130,6 @@ public class UserService {
         user.setRole("ROLE_USER");
         return userRepository.save(user);
     }
+
 
 }
