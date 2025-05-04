@@ -553,4 +553,26 @@ public class UserController {
         }
     }
 
+    @GetMapping("/getUserById/{userId}")
+    public ResponseEntity<Map<String, Object>> getUserById( @PathVariable Long userId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+
+            // Lấy thông tin người dùng theo ID
+            User foundUser = userService.getUserById(userId);
+            if (foundUser == null) {
+                response.put("message", "Người dùng không tồn tại");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            response.put("message", "Lấy thông tin người dùng thành công");
+            response.put("user", foundUser);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("message", "Lỗi hệ thống: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
 }
