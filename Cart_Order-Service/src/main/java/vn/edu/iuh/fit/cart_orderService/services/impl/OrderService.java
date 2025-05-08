@@ -1,6 +1,9 @@
 package vn.edu.iuh.fit.cart_orderService.services.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -10,10 +13,7 @@ import vn.edu.iuh.fit.cart_orderService.services.IService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class OrderService {
@@ -29,7 +29,7 @@ public class OrderService {
     private RestTemplate restTemplate;
 
     private final String PRODUCT_SERVICE_URL = "http://localhost:8082/api/products";
-    private final String authServiceUrl = "http://localhost:8080/users/account";
+    private final String authServiceUrl = "http://localhost:8080/users";
 
     public OrderService(OrderRepository orderRepository, OrderDetailRepository orderDetailRepository, CartRepository cartRepository, CartDetailRepository cartDetailRepository, PaymentMethodRepository paymentMethodRepository) {
         this.orderRepository = orderRepository;
@@ -54,7 +54,7 @@ public class OrderService {
 
         try {
             ResponseEntity<Map> response = restTemplate.exchange(
-                    authServiceUrl, HttpMethod.GET, entity, Map.class);
+                    authServiceUrl + "/account", HttpMethod.GET, entity, Map.class);
 
             if (response.getStatusCode() == HttpStatus.OK) {
                 Map<String, Object> responseBody = response.getBody();
@@ -80,69 +80,6 @@ public class OrderService {
         return null;
     }
 
-//    public Order handlePlaceOrder(String token,  Long paymentMethodId) {
-//        User userDto = getUserFromToken(token);
-//        if (userDto == null) {
-//            // Nếu không tìm thấy thông tin người dùng từ token, trả về null hoặc có thể ném exception
-//            throw new RuntimeException("Invalid token or user not found");
-//        }
-//
-//        Cart cart = cartRepository.findByUserId(userDto.getId());
-//        if (cart == null) {
-//            throw new RuntimeException("Cart not found for the user");
-//        }
-//
-//        List<CartDetail> cartDetails = cartDetailRepository.findByCart(cart);
-//        if (cartDetails.isEmpty()) {
-//            throw new RuntimeException("No products in the cart");
-//        }
-//
-//        // Tìm PaymentMethod và kiểm tra nếu không tìm thấy
-//        Optional<PaymentMethod> optionalPaymentMethod = paymentMethodRepository.findById(paymentMethodId);
-//        if (!optionalPaymentMethod.isPresent()) {
-//            throw new RuntimeException("Payment method not found");
-//        }
-//        PaymentMethod paymentMethod = optionalPaymentMethod.get();
-//
-//        // Tạo Order
-//        Order order = new Order();
-//        order.setCreateAt(LocalDate.now());
-//        order.setUserId(userDto.getId());
-//        order.setStatus("PENDING");
-//        order.setPaymentMethod(paymentMethod);
-//
-//        double sum = 0;
-//        for (CartDetail cartDetail : cartDetails) {
-//            sum += cartDetail.getPrice() * cartDetail.getQuantity();
-//        }
-//        order.setTotalPrice(sum);
-//
-//        // Lưu Order vào cơ sở dữ liệu
-//        order = orderRepository.save(order);
-//
-//        // Tạo OrderDetail từ CartDetail
-//        List<OrderDetail> orderDetails = new ArrayList<>();
-//        for (CartDetail cartDetail : cartDetails) {
-//            OrderDetail orderDetail = new OrderDetail();
-//            orderDetail.setOrder(order);
-//            orderDetail.setProductId(cartDetail.getProductId());  // Đảm bảo có thông tin sản phẩm
-//            orderDetail.setQuantity(cartDetail.getQuantity());
-//            orderDetail.setPrice(cartDetail.getPrice());
-//            orderDetails.add(orderDetail);
-//            orderDetailRepository.save(orderDetail);
-//        }
-//        order.setOrderDetails(orderDetails);
-//
-//        // Xóa các CartDetail
-//        for (CartDetail cartDetail : cartDetails) {
-//            cart.getCartDetails().remove(cartDetail); // Xóa khỏi list để tránh tham chiếu
-//            cartDetailRepository.delete(cartDetail); // Xóa tay
-//        }
-//
-//        // Xóa Cart
-//        cartRepository.delete(cart); // Sau khi xóa các chi tiết giỏ hàng, xóa giỏ hàng
-//        return order;
-//    }
 
 
     public Order placeOrder(String token,  Long paymentMethodId, String shippingAddress , List<Product> orderProductRequest) {
@@ -216,31 +153,105 @@ public class OrderService {
         // Lấy thông tin người dùng từ token
         User userDto = getUserFromToken(token);
         if (userDto == null) {
-            // Nếu không tìm thấy thông tin người dùng từ token, ném exception
             throw new RuntimeException("Invalid token or user not found");
         }
-
         // Tìm đơn hàng theo ID
         Optional<Order> optionalOrder = orderRepository.findById(orderId);
-
         if (!optionalOrder.isPresent()) {
-            // Nếu không tìm thấy đơn hàng, ném exception
             throw new RuntimeException("Order not found");
         }
-
         Order order = optionalOrder.get();
-
-        // Kiểm tra nếu người dùng không phải là chủ của đơn hàng (nếu cần)
         if (!order.getUserId().equals(userDto.getId())) {
             throw new RuntimeException("User is not authorized to update this order");
         }
-
         // Cập nhật trạng thái của đơn hàng
         order.setStatus(status);
-
-
         // Lưu đơn hàng đã được cập nhật
         return orderRepository.save(order);
+    }
+
+    public List<Map<String, Object>> getAllOrder() {
+      List<Order> orders = orderRepository.findAll();
+      List<Map<String, Object>> orderList = new ArrayList<>();
+
+      for (Order order : orders) {
+          Map<String, Object> orderMap = new HashMap<>();
+          orderMap.put("id", order.getId());
+          orderMap.put("date", order.getCreateAt());
+          orderMap.put("status", order.getStatus());
+          orderMap.put("total", order.getTotalPrice());
+          orderMap.put("address", order.getShippingAddress());
+
+          // Thêm thông tin chi tiết đơn hàng
+          List<OrderDetail> orderDetails = orderDetailRepository.findByOrder_Id(order.getId());
+          List<Map<String, Object>> detailsList = new ArrayList<>();
+          for (OrderDetail detail : orderDetails) {
+              Map<String, Object> detailMap = new HashMap<>();
+              detailMap.put("id", detail.getProductId());
+              detailMap.put("name", detail.getProductName());
+              detailMap.put("quantity", detail.getQuantity());
+              detailMap.put("price", detail.getPrice());
+              detailsList.add(detailMap);
+          }
+          orderMap.put("items", detailsList);
+
+//           Thêm thông tin phương thức thanh toán
+          PaymentMethod paymentMethod = paymentMethodRepository.findById(order.getPaymentMethod().getId()).orElse(null);
+          if (paymentMethod != null) {
+              orderMap.put("paymentMethod", paymentMethod.getName());
+          }
+
+          // Thêm thông tin người dùng
+          ResponseEntity<Map> response = restTemplate.exchange(
+                  authServiceUrl + "/getUserById/" + order.getUserId(),
+                  HttpMethod.GET,
+                  null,
+                  Map.class
+          );
+
+          Map<String, Object> body = response.getBody();
+          Map<String, Object> userMap = (Map<String, Object>) body.get("user");
+
+          String username = (String) userMap.get("username");
+          String email = (String) userMap.get("email");
+          String phone = (String) userMap.get("phone");
+
+          orderMap.put("customer", username);
+          orderMap.put("email", email);
+          orderMap.put("phone", phone);
+
+          orderList.add(orderMap);
+
+      }
+        return orderList;
+    }
+
+    public List<Map<String, Object>> getProductSold() {
+        List<Order> orders = orderRepository.findAll();
+        List<Map<String, Object>> productList = new ArrayList<>();
+        ResponseEntity<List<Product>> response = restTemplate.exchange(
+                "http://localhost:8082/api/products",
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Product>>() {}
+        );
+
+        List<Product> products = response.getBody();
+
+        for( Product product : products) {
+            int sum = 0;
+            List<OrderDetail> orderDetails = orderDetailRepository.findByProductId(product.getId());
+            long totalSold = orderDetails.stream()
+                    .mapToLong(OrderDetail::getQuantity)
+                    .sum();
+            Map<String, Object> productMap = new HashMap<>();
+            productMap.put("id", product.getId());
+            productMap.put("name", product.getName());
+            productMap.put("totalSold", totalSold);
+            productList.add(productMap);
+        }
+
+        return productList;
     }
 
 

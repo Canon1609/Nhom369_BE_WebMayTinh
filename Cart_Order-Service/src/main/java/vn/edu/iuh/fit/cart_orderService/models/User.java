@@ -1,12 +1,13 @@
 package vn.edu.iuh.fit.cart_orderService.models;
 
+
 public class User {
     private Long id;
     private String username;
-    private String name ;
+//    private String name ;
     private String email ;
     private String password ;
-    private String address ;
+//    private String address ;
     private String phone ;
     private String avt ;
     private String refreshToken;
@@ -18,10 +19,10 @@ public class User {
     public User(Long id, String username, String name, String email, String password, String address, String phone, String avt, String refreshToken, String role) {
         this.id = id;
         this.username = username;
-        this.name = name;
+//        this.name = name;
         this.email = email;
         this.password = password;
-        this.address = address;
+//        this.address = address;
         this.phone = phone;
         this.avt = avt;
         this.refreshToken = refreshToken;
@@ -44,13 +45,13 @@ public class User {
         this.username = username;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
+//    public String getName() {
+//        return name;
+//    }
+//
+//    public void setName(String name) {
+//        this.name = name;
+//    }
 
     public String getEmail() {
         return email;
@@ -68,13 +69,13 @@ public class User {
         this.password = password;
     }
 
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
+//    public String getAddress() {
+//        return address;
+//    }
+//
+//    public void setAddress(String address) {
+//        this.address = address;
+//    }
 
     public String getPhone() {
         return phone;
@@ -113,10 +114,10 @@ public class User {
         return "User{" +
                 "id=" + id +
                 ", username='" + username + '\'' +
-                ", name='" + name + '\'' +
+//                ", name='" + name + '\'' +
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
-                ", address='" + address + '\'' +
+//                ", address='" + address + '\'' +
                 ", phone='" + phone + '\'' +
                 ", avt='" + avt + '\'' +
                 ", refreshToken='" + refreshToken + '\'' +
