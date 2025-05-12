@@ -15,6 +15,8 @@ public class Order {
     private double totalPrice;
     private String status;
     private LocalDate createAt;
+    private String reasonCancel;
+    private String note;
 
     @JoinColumn(name = "user_id")
     private Long userId;
@@ -95,4 +97,19 @@ public class Order {
         this.shippingAddress = shippingAddress;
     }
 
+    public String getReasonCancel() {
+        return reasonCancel;
+    }
+
+    public void setReasonCancel(String reasonCancel) {
+        this.reasonCancel = reasonCancel;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
 }

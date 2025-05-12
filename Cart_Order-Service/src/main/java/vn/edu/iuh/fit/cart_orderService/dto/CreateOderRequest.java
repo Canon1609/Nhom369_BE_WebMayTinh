@@ -8,6 +8,7 @@ public class CreateOderRequest {
     private List<Product> products;
     private Long paymentMethodId;
     private String shippingAddress;
+    private String note;
 
     public List<Product> getProducts() {
         return products;
@@ -31,5 +32,13 @@ public class CreateOderRequest {
 
     public void setShippingAddress(String shippingAddress) {
         this.shippingAddress = shippingAddress;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
     }
 }

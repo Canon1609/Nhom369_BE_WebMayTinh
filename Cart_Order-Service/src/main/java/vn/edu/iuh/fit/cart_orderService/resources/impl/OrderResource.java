@@ -40,7 +40,8 @@ public class OrderResource {
           Long paymentMethodId = request.getPaymentMethodId();
           List<Product> products = request.getProducts();
           String shippingAddress = request.getShippingAddress();
-          Order order = orderService.placeOrder(token, paymentMethodId, shippingAddress , products);
+          String note = request.getNote();
+          Order order = orderService.placeOrder(token, paymentMethodId, shippingAddress , note , products);
             return ResponseEntity.ok(new Response(
                     HttpStatus.OK.value(),
                     "Place order success",
@@ -51,12 +52,37 @@ public class OrderResource {
           log.error("Error: " + e);
           return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Response(
                   HttpStatus.UNAUTHORIZED.value(),
-                  "APlace order fail: " + e.getMessage(),
+                  "Place order fail: " + e.getMessage(),
                   null
           ));
 
       }
     }
+
+    @PostMapping("/checkProductQuantity")
+    public ResponseEntity<?> checkProductQuantity(@RequestBody CreateOderRequest request) {
+        log.info("Call check product quantity");
+        try {
+            List<Product> products = request.getProducts();
+            Map<String, Object> response = orderService.checkProductQuantity(products);
+            String message = (String) response.get("message");
+            boolean isAvailable = (boolean) response.get("isSuccess");
+            return ResponseEntity.ok(new Response(
+                    HttpStatus.OK.value(),
+                    message,
+                    isAvailable
+            ));
+        } catch (Exception e) {
+            log.error("Check product quantity failed");
+            log.error("Error: " + e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response(
+                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    e.getMessage(),
+                    null
+            ));
+        }
+    }
+
 
     @GetMapping("/getOrders")
     public ResponseEntity<Response> getOrders(@RequestHeader("Authorization") String token) {
@@ -92,7 +118,9 @@ public class OrderResource {
         log.info("Call order update status");
         try {
             String status = request.getStatus();
-            Order output = orderService.handleUpdateStatus(token, orderId, status);
+            String message = request.getMessage();
+            System.out.println("Message: " + message);
+            Order output = orderService.handleUpdateStatus(token, orderId, status, message);
             log.info("Update order status success");
 
             return ResponseEntity.ok(new Response(

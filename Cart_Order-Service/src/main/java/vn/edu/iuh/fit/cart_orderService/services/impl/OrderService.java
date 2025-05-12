@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import vn.edu.iuh.fit.cart_orderService.models.*;
 import vn.edu.iuh.fit.cart_orderService.repositories.*;
@@ -82,7 +83,7 @@ public class OrderService {
 
 
 
-    public Order placeOrder(String token,  Long paymentMethodId, String shippingAddress , List<Product> orderProductRequest) {
+    public Order placeOrder(String token,  Long paymentMethodId, String shippingAddress, String note , List<Product> orderProductRequest) {
         User userDto = getUserFromToken(token);
         if (userDto == null) {
             // Nếu không tìm thấy thông tin người dùng từ token, trả về null hoặc có thể ném exception
@@ -99,22 +100,43 @@ public class OrderService {
         Double totalPrice = 0.0;
         // Gọi API ProductService để lấy thông tin sản phẩm
         for (Product item : orderProductRequest) {
-            // Gọi Product Service để lấy thông tin sản phẩm theo ID
-            Product product = restTemplate.getForObject(PRODUCT_SERVICE_URL + "/" + item.getId(), Product.class);
-
-            if (product != null) {
-                OrderDetail detail = new OrderDetail();
-                detail.setOrder(order);
-                detail.setProductId(product.getId());
-                detail.setQuantity(item.getQuantity());
-                detail.setPrice(product.getPrice());
-                detail.setProductName(product.getName());
-                totalPrice += product.getPrice() * item.getQuantity();
-                orderDetails.add(detail);
+            Product product;
+            try {
+                product = restTemplate.getForObject(PRODUCT_SERVICE_URL + "/" + item.getId(), Product.class);
+            } catch (Exception e) {
+                throw new RuntimeException("Product with ID " + item.getId() + " not found");
             }
+
+
+            if (product.getQuantity() < item.getQuantity()) {
+                throw new RuntimeException("Product quantity is not enough");
+            }
+
+            // Tạo OrderDetail
+            OrderDetail detail = new OrderDetail();
+            detail.setOrder(order);
+            detail.setProductId(product.getId());
+            detail.setQuantity(item.getQuantity());
+            detail.setPrice(product.getPrice());
+            detail.setProductName(product.getName());
+            totalPrice += product.getPrice() * item.getQuantity();
+            orderDetails.add(detail);
+
+            // 👇 Cập nhật số lượng sản phẩm sau khi đặt hàng
+            Long updatedQuantity = product.getQuantity() - item.getQuantity();
+
+            // Gọi API update quantity
+            String updateQuantityUrl = PRODUCT_SERVICE_URL + "/update-quantity/" + product.getId();
+
+            Map<String, Integer> quantityUpdate = new HashMap<>();
+            quantityUpdate.put("quantity", Math.toIntExact(updatedQuantity));
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, Integer>> requestEntity = new HttpEntity<>(quantityUpdate, headers);
+
+            restTemplate.postForObject(updateQuantityUrl, requestEntity, Void.class);
         }
-
-
 
         // Tìm PaymentMethod và kiểm tra nếu không tìm thấy
         Optional<PaymentMethod> optionalPaymentMethod = paymentMethodRepository.findById(paymentMethodId);
@@ -126,12 +148,44 @@ public class OrderService {
         order.setOrderDetails(orderDetails);
         order.setStatus("PENDING");
         order.setTotalPrice(totalPrice);
+        order.setNote(note);
         order.setShippingAddress(shippingAddress);
 
         orderRepository.save(order);
 
         return order;
     }
+
+
+    public Map<String, Object> checkProductQuantity(List<Product> orderProductRequest) {
+        Map<String, Object> response = new HashMap<>();
+        for (Product item : orderProductRequest) {
+            Product product;
+            try {
+                product = restTemplate.getForObject(PRODUCT_SERVICE_URL + "/" + item.getId(), Product.class);
+                if (product == null) {
+                    response.put("message", "Product with ID " + item.getId() + " not found");
+                    response.put("isSuccess", false);
+                    return response;
+                }
+            } catch (HttpClientErrorException.NotFound e) {
+                response.put("message", "Product with ID " + item.getId() + " not found");
+                response.put("isSuccess", false);
+                return response;
+            }
+
+            if (product.getQuantity() < item.getQuantity()) {
+                response.put("message", product.getName() + " Không đủ số lượng");
+                response.put("isSuccess", false);
+                return response;
+            }
+        }
+
+        response.put("message", "Product quantity is enough");
+        response.put("isSuccess", true);
+        return response;
+    }
+
 
 
 
@@ -149,7 +203,7 @@ public class OrderService {
     }
 
 
-    public Order handleUpdateStatus(String token, Long orderId, String status) {
+    public Order handleUpdateStatus(String token, Long orderId, String status, String message) {
         // Lấy thông tin người dùng từ token
         User userDto = getUserFromToken(token);
         if (userDto == null) {
@@ -165,7 +219,10 @@ public class OrderService {
             throw new RuntimeException("User is not authorized to update this order");
         }
         // Cập nhật trạng thái của đơn hàng
+        System.out.println("Status: " + status);
+        System.out.println("Message: " + message);
         order.setStatus(status);
+        order.setReasonCancel(message);
         // Lưu đơn hàng đã được cập nhật
         return orderRepository.save(order);
     }
