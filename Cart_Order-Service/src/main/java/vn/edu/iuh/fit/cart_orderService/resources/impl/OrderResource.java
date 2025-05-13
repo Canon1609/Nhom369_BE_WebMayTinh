@@ -1,5 +1,6 @@
 package vn.edu.iuh.fit.cart_orderService.resources.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +14,9 @@ import vn.edu.iuh.fit.cart_orderService.models.Response;
 import vn.edu.iuh.fit.cart_orderService.resources.IManagement;
 import vn.edu.iuh.fit.cart_orderService.services.impl.OrderService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/order")
@@ -26,30 +29,6 @@ public class OrderResource {
         this.orderService = orderService;
     }
 
-//    @PostMapping("/placeOrder")
-//    public ResponseEntity<Response> insert(@RequestBody CreateOderRequest request, @RequestHeader("Authorization") String token) {
-//        log.info("Call order insert");
-//        try {
-////            Long UserId = request.getUserId();
-////            Long AddressId = request.getAddressId();
-//            Long PaymentId = request.getPaymentMethodId();
-//            Order ouput = orderService.handlePlaceOrder(token, PaymentId);
-//            log.info("Insert order success");
-//            return ResponseEntity.ok(new Response(
-//                    200,
-//                    "Insert order success",
-//                    ouput
-//            ));
-//        } catch (Exception e) {
-//            log.error("Insert order fail");
-//            log.error("Error: " + e);
-//            return ResponseEntity.ok(new Response(
-//                    200,
-//                    "Insert order fail",
-//                    null
-//            ));
-//        }
-//    }
 
     @PostMapping("/placeOrder")
     public ResponseEntity<?> placeOrder(
@@ -140,6 +119,34 @@ public class OrderResource {
                     null
             ));
         }
+    }
+
+    @GetMapping("/getOrderAllOrder")
+    public ResponseEntity<Map<String, Object>> getAllOrder(){
+        Map<String, Object> response = new HashMap<>();
+        List<Map<String, Object>> orders = orderService.getAllOrder();
+        if (orders.isEmpty()) {
+            response.put("message", "No orders found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+        response.put("message", "Get all orders success");
+        response.put("status", HttpStatus.OK.value());
+        response.put("orders", orders);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/getProductSold")
+    public ResponseEntity<Map<String, Object>> getProductSold(){
+        Map<String, Object> response = new HashMap<>();
+        List<Map<String, Object>> products = orderService.getProductSold();
+        if (products.isEmpty()) {
+            response.put("message", "No products found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+        response.put("message", "Get all products sold success");
+        response.put("status", HttpStatus.OK.value());
+        response.put("products", products);
+        return ResponseEntity.ok(response);
     }
 
 
