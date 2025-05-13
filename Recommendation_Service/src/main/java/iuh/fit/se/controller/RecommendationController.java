@@ -87,6 +87,7 @@ public class RecommendationController {
         return recommendationService.getRecommendedProducts();
     }
 
+
     @GetMapping("/product-sales")
     public ResponseEntity<Response> getProductSales() {
         try {
@@ -101,10 +102,15 @@ public class RecommendationController {
             return ResponseEntity.ok(
                     new Response(HttpStatus.OK.value(), "Get product sales success", productSales)
             );
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    new Response(HttpStatus.BAD_REQUEST.value(), "Get product sales failed: " + e.getMessage(), null)
+            );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                     new Response(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal server error", null)
             );
         }
     }
+
 }

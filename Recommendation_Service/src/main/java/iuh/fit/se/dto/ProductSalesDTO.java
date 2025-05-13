@@ -3,57 +3,30 @@ package iuh.fit.se.dto;
 import java.util.Objects;
 
 public class ProductSalesDTO {
-    private Long productId;
-    private String productName;
+    private Long id;
+    private String name;
     private Long totalSold;
+    private String image;
+    private Double price;
+    private Double originalPrice;
+    private Double rating;
+    private Integer reviews;
 
-    // Constructor không tham số
-    public ProductSalesDTO() {
-    }
-
-    // Constructor đầy đủ tham số
-    public ProductSalesDTO(Long productId, String productName, Long totalSold) {
-        this.productId = productId;
-        this.productName = productName;
-        this.totalSold = totalSold;
-    }
-
-    // Getter và Setter
-    public Long getProductId() {
-        return productId;
-    }
-
-    public void setProductId(Long productId) {
-        this.productId = productId;
-    }
-
-    public String getProductName() {
-        return productName;
-    }
-
-    public void setProductName(String productName) {
-        this.productName = productName;
-    }
-
-    public Long getTotalSold() {
-        return totalSold;
-    }
-
-    public void setTotalSold(Long totalSold) {
-        this.totalSold = totalSold;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        ProductSalesDTO that = (ProductSalesDTO) o;
-        return Objects.equals(productId, that.productId) &&
-                Objects.equals(productName, that.productName) &&
-                Objects.equals(totalSold, that.totalSold);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(productId, productName, totalSold);
-    }
+    // Getters and setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public Long getTotalSold() { return totalSold; }
+    public void setTotalSold(Long totalSold) { this.totalSold = totalSold; }
+    public String getImage() { return image; }
+    public void setImage(String image) { this.image = image; }
+    public Double getPrice() { return price; }
+    public void setPrice(Double price) { this.price = price; }
+    public Double getOriginalPrice() { return originalPrice; }
+    public void setOriginalPrice(Double originalPrice) { this.originalPrice = originalPrice; }
+    public Double getRating() { return rating; }
+    public void setRating(Double rating) { this.rating = rating; }
+    public Integer getReviews() { return reviews; }
+    public void setReviews(Integer reviews) { this.reviews = reviews; }
 }
