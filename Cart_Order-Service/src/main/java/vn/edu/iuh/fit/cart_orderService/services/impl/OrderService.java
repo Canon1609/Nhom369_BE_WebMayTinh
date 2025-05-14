@@ -95,7 +95,7 @@ public class OrderService {
             throw new RuntimeException("Order product request is empty");
         Order order = new Order();
         order.setUserId(userDto.getId());
-        order.setCreateAt(LocalDate.now());
+        order.setCreateAt(LocalDateTime.now());
         List<OrderDetail> orderDetails = new ArrayList<>();
         Double totalPrice = 0.0;
         // Gọi API ProductService để lấy thông tin sản phẩm
@@ -238,6 +238,8 @@ public class OrderService {
           orderMap.put("status", order.getStatus());
           orderMap.put("total", order.getTotalPrice());
           orderMap.put("address", order.getShippingAddress());
+          orderMap.put("note", order.getNote());
+          orderMap.put("reasonCancel", order.getReasonCancel());
 
           // Thêm thông tin chi tiết đơn hàng
           List<OrderDetail> orderDetails = orderDetailRepository.findByOrder_Id(order.getId());
