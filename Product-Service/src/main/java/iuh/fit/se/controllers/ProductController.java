@@ -234,7 +234,6 @@ public class ProductController {
         }
     }
 
-}
 
     @GetMapping("/products/category/{categoryId}/factories")
     public ResponseEntity<List<String>> getFactoriesByCategory(@PathVariable("categoryId") Long categoryId) {
