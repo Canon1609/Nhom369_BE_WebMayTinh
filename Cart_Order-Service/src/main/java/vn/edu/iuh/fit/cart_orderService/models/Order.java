@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -14,7 +15,9 @@ public class Order {
     private long id;
     private double totalPrice;
     private String status;
-    private LocalDate createAt;
+    private LocalDateTime createAt;
+    private String reasonCancel;
+    private String note;
 
     @JoinColumn(name = "user_id")
     private Long userId;
@@ -55,11 +58,11 @@ public class Order {
         this.status = status;
     }
 
-    public LocalDate getCreateAt() {
+    public LocalDateTime getCreateAt() {
         return createAt;
     }
 
-    public void setCreateAt(LocalDate createAt) {
+    public void setCreateAt(LocalDateTime createAt) {
         this.createAt = createAt;
     }
 
@@ -95,4 +98,19 @@ public class Order {
         this.shippingAddress = shippingAddress;
     }
 
+    public String getReasonCancel() {
+        return reasonCancel;
+    }
+
+    public void setReasonCancel(String reasonCancel) {
+        this.reasonCancel = reasonCancel;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
 }

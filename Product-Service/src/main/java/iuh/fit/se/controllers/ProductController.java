@@ -210,6 +210,32 @@ public class ProductController {
         }
     }
 
+
+    @PostMapping("/products/update-quantity/{productId}")
+    public ResponseEntity<Product> updateProductQuantity(
+            @PathVariable("productId") Long productId,
+            @RequestBody Product productDto) {
+        try {
+            Optional<Product> productOpt = productService.getProductById(productId);
+            if (!productOpt.isPresent()) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+            Long quantity = productDto.getQuantity();
+            if (quantity == null || quantity < 0) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+            Product product = productOpt.get();
+            product.setQuantity(quantity);
+            Product updatedProduct = productService.saveProduct(product);
+            return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+}
+
     @GetMapping("/products/category/{categoryId}/factories")
     public ResponseEntity<List<String>> getFactoriesByCategory(@PathVariable("categoryId") Long categoryId) {
         try {
@@ -232,3 +258,4 @@ public class ProductController {
         }
     }
 }
+
