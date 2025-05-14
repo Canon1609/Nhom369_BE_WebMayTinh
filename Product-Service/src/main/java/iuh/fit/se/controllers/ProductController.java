@@ -210,6 +210,7 @@ public class ProductController {
         }
     }
 
+
     @PostMapping("/products/update-quantity/{productId}")
     public ResponseEntity<Product> updateProductQuantity(
             @PathVariable("productId") Long productId,
@@ -234,3 +235,27 @@ public class ProductController {
     }
 
 }
+
+    @GetMapping("/products/category/{categoryId}/factories")
+    public ResponseEntity<List<String>> getFactoriesByCategory(@PathVariable("categoryId") Long categoryId) {
+        try {
+            List<Product> products = productService.getProductsByCategoryId(categoryId);
+            if (products.isEmpty()) {
+                return new ResponseEntity<>(Collections.emptyList(), HttpStatus.NO_CONTENT);
+            }
+            // Lấy danh sách duy nhất các factory
+            Set<String> uniqueFactories = new HashSet<>();
+            for (Product product : products) {
+                if (product.getFactory() != null && !product.getFactory().isEmpty()) {
+                    uniqueFactories.add(product.getFactory());
+                }
+            }
+            List<String> factories = new ArrayList<>(uniqueFactories);
+            return new ResponseEntity<>(factories, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(Collections.emptyList(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+}
+

@@ -75,3 +75,28 @@ body
 {
 "quantity": 3636
 }
+=========================================Categories==========================
+1. Thêm danh mục sản phẩm
+POST http://localhost:8082/api/categories
+key: "category", type: application/json
+{
+"name": "Linh kiện",
+"description": "Linh kiện máy tính"
+}
+key: "image" (file)
+value: "category.jpg",type: multipart/form-data
+2. Lấy danh sách danh mục sản phẩm
+GET http://localhost:8082/api/categories
+- Get by id
+GET http://localhost:8082/api/categories/1
+3. xóa danh mục sản phẩm
+DELETE http://localhost:8082/api/categories/1
+4. cập nhật danh mục sản phẩm
+PUT http://localhost:8082/api/categories/1
+   key: "category", type: application/json
+   {
+   "name": "Linh kiện",
+   "description": "Linh kiện máy tính"
+   }
+   key: "image" (file) (có thể không có) nếu không muốn cập nhật image
+   value: "category.jpg",type: multipart/form-data
