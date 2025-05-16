@@ -44,6 +44,7 @@ public class ProductController {
             @RequestPart(value = "product", required = true) Product product,
             @RequestPart(value = "image", required = false) MultipartFile image) {
         try {
+            product.setPriceAfterDiscount(product.getPrice() - (product.getPrice() * product.getDiscount() / 100));
             System.out.println("Received product: " + product);
             System.out.println("Received image: " + (image != null ? image.getOriginalFilename() : "null"));
 
@@ -104,6 +105,8 @@ public class ProductController {
                         return new ResponseEntity<>("Error uploading image to S3: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
                     }
                 }
+
+                product.setPriceAfterDiscount(product.getPrice() - (product.getPrice() * product.getDiscount() / 100));
 
                 Product savedProduct;
                 try {

@@ -16,6 +16,8 @@ public class Product {
     private String description;
     private long quantity;
     private String factory;
+    private double discount;
+    private double priceAfterDiscount;
 
 
     @ManyToOne
@@ -23,13 +25,15 @@ public class Product {
     @JsonBackReference
     private Category category;
 
-    public Product(String name, double price, String image, String description, long quantity, String factory, Category category) {
+    public Product(long id, String name, double price, String image, String description, long quantity, String factory, Double discount, Category category) {
+        this.id = id;
         this.name = name;
         this.price = price;
         this.image = image;
         this.description = description;
         this.quantity = quantity;
         this.factory = factory;
+        this.discount = discount;
         this.category = category;
     }
 
@@ -99,5 +103,21 @@ public class Product {
 
     public void setCategory(Category category) {
         this.category = category;
+    }
+
+    public double getDiscount() {
+        return discount;
+    }
+
+    public void setDiscount(double discount) {
+        this.discount = discount;
+    }
+
+    public double getPriceAfterDiscount() {
+        return priceAfterDiscount;
+    }
+
+    public void setPriceAfterDiscount(double priceAfterDiscount) {
+        this.priceAfterDiscount = priceAfterDiscount;
     }
 }

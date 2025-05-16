@@ -117,9 +117,9 @@ public class OrderService {
             detail.setOrder(order);
             detail.setProductId(product.getId());
             detail.setQuantity(item.getQuantity());
-            detail.setPrice(product.getPrice());
+            detail.setPrice(product.getPriceAfterDiscount());
             detail.setProductName(product.getName());
-            totalPrice += product.getPrice() * item.getQuantity();
+            totalPrice += product.getPriceAfterDiscount() * item.getQuantity();
             orderDetails.add(detail);
 
             // 👇 Cập nhật số lượng sản phẩm sau khi đặt hàng
