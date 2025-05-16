@@ -62,7 +62,7 @@ public class UserController {
             if(role == null) {
                 response.put("message", "Không tìm thấy role hoặc token hết hạn");
             }
-            if(!role.equals("ROLE_ADMIN")) {
+            if(!role.equals("ADMIN")) {
                 response.put("status", "error");
                 response.put("message", "Bạn không có quyền lấy danh sách người dùng. Chỉ admin mới có quyền này.");
                 return ResponseEntity.status(400).body(response);

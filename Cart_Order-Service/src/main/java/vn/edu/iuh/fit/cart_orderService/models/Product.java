@@ -11,6 +11,9 @@ public class Product {
     private String description;
     private long quantity;
     private String factory;
+    private double discount;
+    private double priceAfterDiscount;
+
 
     public long getId() {
         return id;
@@ -68,6 +71,23 @@ public class Product {
         this.factory = factory;
     }
 
+    public double getDiscount() {
+        return discount;
+    }
+
+    public void setDiscount(double discount) {
+        this.discount = discount;
+    }
+
+    public double getPriceAfterDiscount() {
+        return priceAfterDiscount;
+    }
+
+    public void setPriceAfterDiscount(double priceAfterDiscount) {
+        this.priceAfterDiscount = priceAfterDiscount;
+    }
+
+
     @Override
     public String toString() {
         return "Product{" +
@@ -78,6 +98,8 @@ public class Product {
                 ", description='" + description + '\'' +
                 ", quantity=" + quantity +
                 ", factory='" + factory + '\'' +
+                ", discount=" + discount +
+                ", priceAfterDiscount=" + priceAfterDiscount +
                 '}';
     }
 }

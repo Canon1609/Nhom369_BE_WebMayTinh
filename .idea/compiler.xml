@@ -10,15 +10,16 @@
         </processorPath>
         <module name="Cart_Order-Service.main" />
       </profile>
-      <profile name="Annotation profile for Auth-Service" enabled="true">
+      <profile name="Annotation profile for Recommendation_Service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
+          <entry name="$USER_HOME$/.m2/repository/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
+          <entry name="$USER_HOME$/.m2/repository/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
         </processorPath>
-        <module name="Authen-Service" />
         <module name="Recommendation_Service" />
+        <module name="Authen-Service" />
         <module name="Product-Service" />
       </profile>
     </annotationProcessing>
