@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.util.Base64;
 import java.util.Date;
+import java.util.Set;
 
 @Component
 public class JwtUtil {
@@ -35,18 +36,16 @@ public class JwtUtil {
                 .claim("role", role) // Thêm role vào claims
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + accessTokenExp))
-                .signWith(secret, SignatureAlgorithm.HS512)
+                .signWith(SignatureAlgorithm.HS512, secret)
                 .compact();
-
     }
-
     // tạo Refresh Token
     public String generateRefreshToken(String userName) {
         return Jwts.builder()
                 .setSubject(userName)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExp))
-                .signWith(secret, SignatureAlgorithm.HS512)
+                .signWith(SignatureAlgorithm.HS512, secret)
                 .compact();
 
     }
@@ -62,6 +61,11 @@ public class JwtUtil {
                 .getSubject();
     }
 
+    //Trích xuất danh sách role từ token
+    public Set<String> extractRoles(String token) {
+        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody()
+                .get("roles", Set.class);
+    }
     // kiểm tra token có hợp lệ không
     public boolean validateToken(String token , String userName) {
        try{

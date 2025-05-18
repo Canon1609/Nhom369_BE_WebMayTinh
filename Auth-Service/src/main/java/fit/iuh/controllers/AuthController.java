@@ -21,6 +21,7 @@ import java.util.Map;
 public class AuthController {
     @Autowired
     private UserService userService;
+
     @Autowired
     private JwtUtil jwtUtil;
     /**
@@ -107,7 +108,7 @@ public class AuthController {
            }
            if (userService.checkPassword(user.getPassword(), existingUser.getPassword())) {
                String accessToken = jwtUtil.generateAccessToken(existingUser.getUsername() , existingUser.getRole());
-               String refreshToken = jwtUtil.generateRefreshToken(user.getUsername());
+               String refreshToken = jwtUtil.generateRefreshToken(existingUser.getUsername());
                userService.updateRefreshToken(user.getUsername(), refreshToken);
                Map<String, String> tokens = new HashMap<>();
                tokens.put("accessToken", accessToken);
@@ -169,7 +170,8 @@ public class AuthController {
                 tokens.put("accessToken", newAccessToken);
                 tokens.put("refreshToken", refreshToken);
                 return ResponseEntity.ok(tokens);
-            } else {
+            }
+            else {
                 response.put("message","refresh token không hợp lệ");
                 return ResponseEntity.status(403).body(response);
             }
