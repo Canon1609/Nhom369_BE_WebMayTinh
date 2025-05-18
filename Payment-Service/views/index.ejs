@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trạng thái thanh toán VNPay</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+        <h1 class="text-2xl font-bold text-center mb-6">Trạng Thái Thanh Toán</h1>
+        
+        <% if (vnp_ResponseCode) { %>
+            <div class="text-center">
+                <p class="text-lg font-semibold mb-2">
+                    <%= transactionStatus === '00' ? 'Thanh toán thành công' : 'Thanh toán thất bại' %>
+                </p>
+                <p class="text-gray-600 mb-4">
+                    <%= transactionStatus === '00' ? 'Cảm ơn bạn đã thanh toán đơn hàng!' : 'Vui lòng thử lại hoặc liên hệ hỗ trợ.' %>
+                </p>
+
+                <div class="text-left space-y-2">
+                    <p><strong>Mã giao dịch:</strong> <%= vnp_TxnRef %></p>
+                    <p><strong>Số tiền:</strong> <%= (vnp_Amount / 100).toLocaleString('vi-VN') %> VND</p>
+                    <p><strong>Ngân hàng:</strong> <%= vnp_BankCode || 'N/A' %></p>
+                    <p><strong>Thời gian:</strong> <%= vnp_PayDate ? new Date(vnp_PayDate.match(/.{1,4}/g).join('-')).toLocaleString('vi-VN') : 'N/A' %></p>
+                    <p><strong>Mã phản hồi:</strong> <%= vnp_ResponseCode %></p>
+                    <p><strong>Thông điệp:</strong> <%= message || 'Không có thông điệp' %></p>
+                </div>
+
+                <div class="mt-6">
+                    <a href="/" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Quay về trang chủ</a>
+                </div>
+            </div>
+        <% } else { %>
+            <p class="text-red-500 text-center">Không tìm thấy thông tin giao dịch.</p>
+            <div class="mt-6 text-center">
+                <a href="/" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Quay về trang chủ</a>
+            </div>
+        <% } %>
+    </div>
+</body>
+</html>

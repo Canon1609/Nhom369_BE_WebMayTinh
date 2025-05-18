@@ -55,6 +55,33 @@ public class AuthController {
             return ResponseEntity.status(500).body(response);
         }
     }
+
+    
+    /**
+     * Endpoint : GET /verify
+     * Xử lý yêu cầu xác thực tài khoản người dùng
+     * Nhận mã xác thực từ request param
+     * Gọi UserService để xác thực tài khoản
+     * @Param verificationCode Mã xác thực từ client
+     * @return ResponseEntity với thông báo thành công hoặc lỗi
+     */
+    @GetMapping("/verify")
+    public ResponseEntity<Map<String , String>> verifyUser(@RequestParam("code") String verificationCode) {
+        Map<String, String> response = new HashMap<>();
+        try {
+            boolean verified = userService.verifyUser(verificationCode);
+            if (verified) {
+                response.put("message", "xác thực tai khoản thành công");
+            } else {
+                response.put("message" ,"xác thực tài khoản không thành công");
+            }
+        } catch (IllegalArgumentException e) {
+            response.put("message" , e.getMessage());
+        } catch (Exception e) {
+           response.put("message" , e.getMessage());
+        }
+        return ResponseEntity.ok(response);
+    }
      /**
      * Endpoint : POST /login
      * Xử lý yêu cầu đăng nhập của người dùng

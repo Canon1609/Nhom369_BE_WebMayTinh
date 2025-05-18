@@ -21,6 +21,8 @@ public class User {
     private String avt ;
     private String refreshToken;
     private String role;
+    private boolean enable;
+    private String verificationCode;
     // Getter và Setter cho username
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -107,5 +109,17 @@ public class User {
 
     public void setProductFavorites(List<ProductFavorite> productFavorites) {
         this.productFavorites = productFavorites;
+    }
+     public boolean isEnable() {
+        return enable;
+    }
+    public void setEnable(boolean enable) {
+        this.enable = enable;
+    }
+    public String getVerificationCode() {
+        return verificationCode;
+    }
+    public void setVerificationCode(String verificationCode) {
+        this.verificationCode = verificationCode;
     }
 }
