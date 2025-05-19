@@ -177,5 +177,15 @@ public class OrderResource {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/checkUserPurchaseProduct/{productId}")
+    public ResponseEntity<Map<String, Object>> checkUserPurchaseProduct(@PathVariable Long productId, @RequestHeader("Authorization") String token) {
+        Map<String, Object> response = new HashMap<>();
+        boolean isPurchased = orderService.CheckUserPurchaseProduct(token,productId);
+        response.put("message", "Check user purchase product success");
+        response.put("status", HttpStatus.OK.value());
+        response.put("isPurchased", isPurchased);
+        return ResponseEntity.ok(response);
+    }
+
 
 }

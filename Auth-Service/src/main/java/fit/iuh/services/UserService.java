@@ -121,6 +121,10 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    public User savaUser(User user){
+        return userRepository.save(user);
+    }
+
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
@@ -141,7 +145,7 @@ public class UserService {
             throw new IllegalArgumentException("Email đã tồn tại ");
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRole("ROLE_USER");
+        user.setRole("USER");
         return userRepository.save(user);
     }
 
@@ -149,7 +153,7 @@ public class UserService {
         return userRepository.findById(id).orElse(null);
     }
 
-      /**
+    /**
      * Gửi email xác thực tới người dùng.
      * @param email Địa chỉ email của người dùng
      * @param verificationCode Mã xác thực
