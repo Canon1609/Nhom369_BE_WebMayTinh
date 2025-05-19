@@ -6,17 +6,21 @@ import fit.iuh.models.User;
 import fit.iuh.security.JwtUtil;
 import fit.iuh.services.AddressService;
 import fit.iuh.services.ProductFavotiteService;
+import fit.iuh.services.S3Service;
 import fit.iuh.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
@@ -30,6 +34,8 @@ public class UserController {
     private JwtUtil jwtUtil;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private S3Service s3Service;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -116,8 +122,14 @@ public class UserController {
                 response.put("message", "Token không hợp lệ hoặc hết hạn");
                 return ResponseEntity.status(401).body(response);
             }
+//            Long userId = jwtUtil.extractId(token);
+//            if (userId == null) {
+//                response.put("message", "Token không hợp lệ hoặc hết hạn");
+//                return ResponseEntity.status(401).body(response);
+//            }
             // Tìm người dùng từ database
             User user = userService.finByUserName(username);
+//            User user = userService.getUserById(userId);
             if (user == null) {
                 response.put("message", "Người dùng không tồn tại");
                 return ResponseEntity.status(404).body(response);
@@ -179,7 +191,7 @@ public class UserController {
                 response.put("message" , "Role rỗng hoặc token hết hạn");
                 return ResponseEntity.status(401).body(response);
             }
-            if(!role.equals("ROLE_ADMIN")) {
+            if(!role.equals("ADMIN")) {
                 response.put("message","Bạn không có quyền thêm người dùng mới , chỉ có admin mới có quyền thêm");
                 return ResponseEntity.status(401).body(response);
             }
@@ -198,81 +210,77 @@ public class UserController {
             return ResponseEntity.status(500).body(response);
         }
     }
-    @PatchMapping("/update")
-    public ResponseEntity<Map<String, Object>> updateUserInfo(@RequestHeader("Authorization") String authHeader, @RequestBody Map<String, Object> updates) {
-        Map<String, Object> response = new HashMap<>();
-        Map<String, Object> userInfo = new HashMap<>();
-        try {
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                response.put("message", "Thiếu hoặc sai định dạng Authorization header");
-            }
-            String token = authHeader.substring(7);
-            String username = jwtUtil.extractUsername(token);
-            if (username == null) {
-                response.put("message" , "Token không hợp lệ hoặc hết hạn");
-            }
-            User user = userService.finByUserName(username);
-            System.out.println(user);
-            if (user == null) {
-                response.put("message" , "Không tìm thấy người dùng để cập nhật");
-            }
-            if(updates.get("id") != null) {
-                response.put("status", "error");
-                response.put("message", "Không được phép cập nhật ID của người dùng");
-                return ResponseEntity.status(400).body(response);
-            }
-//            if(updates.get("email") != null) {
-//                String newEmail = (String) updates.get("email");
-//                user.setEmail(newEmail);
-//            }
-//            if(updates.get("avt") != null) {
-//                String newAvt = (String) updates.get("avt");
-//                user.setAvt(newAvt);
-//            }
-//            if(updates.get("username") != null) {
-//                String newUsername = (String) updates.get("username");
-//                User isExistUser = userService.finByUserName(newUsername);
-//                if(isExistUser != null) {
-//                    response.put("message" , "tên người dùng đã tồn tại");
-//                    return ResponseEntity.status(400).body(response);
-//                }
-//            }
-//            if(updates.get("address") != null) {
-//                String newAddress = (String) updates.get("address");
-//                user.setAddress(newAddress);
-//            }
-            if(updates.get("phone") != null) {
-                String newPhone = (String) updates.get("phone");
-                user.setPhone(newPhone);
-            }
-//            if (updates.get("password") != null) {
-//                String newPassword = (String) updates.get("password");
-//                user.setPassword(newPassword);
-//            }
-//            if(updates.get("name") != null) {
-//                String newName = (String) updates.get("name");
-//                user.setName(newName);
-//            }
-            userService.updateUser(user);
-            // tạo user DTO trả về cho client
-//            userInfo.put("name" , user.getName());
-            userInfo.put("username", user.getUsername());
-//            userInfo.put("email", user.getEmail());
-//            userInfo.put("address", user.getAddress());
-            userInfo.put("phone", user.getPhone());
-//            userInfo.put("avt", user.getAvt());
 
+    @PostMapping("/update/{id}")
+    public ResponseEntity<Object> updateUser(
+            @PathVariable("id") Long id,
+            @RequestBody User user
+    ) {
+        User existingUserOptional = userService.getUserById(id);
+        if(existingUserOptional != null) {
+//            user.setId(id);
+            try {
+                System.out.println("update user: " + user);
+                existingUserOptional.setUsername(user.getUsername());
+//                existingUserOptional.setEmail(user.getEmail());
+                existingUserOptional.setPhone(user.getPhone());
+                existingUserOptional.setRole(user.getRole());
+                User saveUser;
+                try{
 
-            response.put("status", "success");
-            response.put("message", "Cập nhật thông tin thành công");
-            response.put("data", userInfo);
-            return ResponseEntity.ok(response);
+                    saveUser = userService.savaUser(existingUserOptional);
+                } catch (Exception e) {
+                    return new ResponseEntity<>("Error saving user to database: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+                }
 
-        } catch (Exception e) {
-            response.put("message", "Lỗi hệ thống" + e.getMessage());
-            return ResponseEntity.status(500).body(response);
+                return new ResponseEntity<>(saveUser, HttpStatus.OK);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return new ResponseEntity<>("Unexpected error: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    @PostMapping("/updateAvatar/{id}")
+    public ResponseEntity<Object> updateAvatar(
+            @PathVariable("id") Long id,
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ){
+        User existingUserOptional = userService.getUserById(id);
+        if(existingUserOptional != null) {
+            try {
+                if (image != null && !image.isEmpty()) {
+                    try {
+                        String imageUrl = s3Service.uploadFile(image);
+                        existingUserOptional.setAvt(imageUrl);
+                    } catch (Exception e) {
+                        return new ResponseEntity<>("Error uploading image to S3: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+                    }
+                }
+                User saveUser;
+                try{
+
+                    saveUser = userService.savaUser(existingUserOptional);
+                } catch (Exception e) {
+                    return new ResponseEntity<>("Error saving user to database: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+
+                return new ResponseEntity<>(saveUser, HttpStatus.OK);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return new ResponseEntity<>("Unexpected error: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
     /**
      * Endpoint : /delete/{id}
      * Xử lý yêu cầu xóa người dùng trong hệ thống của admin
@@ -309,7 +317,7 @@ public class UserController {
             if (username == null) {
                 response.put("message" , "Token không hợp lệ hoặc hết hạn");
             }
-            if(!role.equals("ROLE_ADMIN")) {
+            if(!role.equals("ADMIN")) {
                 response.put("status", "error");
                 response.put("message", "Bạn không có quyền xóa người dùng. Chỉ admin mới có quyền này.");
                 return ResponseEntity.status(400).body(response);

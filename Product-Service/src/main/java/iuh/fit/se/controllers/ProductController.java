@@ -1,5 +1,7 @@
 package iuh.fit.se.controllers;
 
+import iuh.fit.se.dto.AddCommentRequest;
+import iuh.fit.se.models.Comment;
 import iuh.fit.se.models.Product;
 import iuh.fit.se.services.ProductService;
 import iuh.fit.se.services.S3Service;
@@ -20,6 +22,8 @@ import java.util.*;
 public class ProductController {
     @Autowired
     private ProductService productService;
+
+
 
     @Autowired
     private S3Service s3Service;
@@ -259,5 +263,62 @@ public class ProductController {
             return new ResponseEntity<>(Collections.emptyList(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PostMapping("/product/addComment/{productId}")
+    public ResponseEntity<Comment> addCommentToProduct(
+            @PathVariable("productId") Long productId,
+            @RequestBody AddCommentRequest comment) {
+        try {
+            Optional<Product> productOpt = productService.getProductById(productId);
+            if (!productOpt.isPresent()) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+            Long userId = comment.getUserId();
+            String userName = comment.getUserName();
+            int rating = comment.getRating();
+            String commentText = comment.getComment();
+            Comment addComment = productService.addComment(userId, userName, rating, commentText, productId);
+            return new ResponseEntity<>(addComment, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/product/{productId}/comments")
+    public ResponseEntity<List<Comment>> getCommentsByProductId(@PathVariable("productId") Long productId) {
+        try {
+            List<Comment> comments = productService.getCommentsByProductId(productId);
+            if (comments.isEmpty()) {
+                return new ResponseEntity<>(Collections.emptyList(), HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(comments, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(Collections.emptyList(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/product/checkUserComment/{productId}/{userId}")
+    public ResponseEntity<Map<String, Object>> checkUserComment(@PathVariable("productId") Long productId, @PathVariable("userId") Long userId) {
+        try {
+            Map<String, Object> response = new HashMap<>();
+            List<Comment> comments = productService.getCommentsByProductId(productId);
+            System.out.println("Comments: " + comments);
+            boolean hasCommented = false;
+            for (Comment comment : comments) {
+                if (comment.getUserId().equals(userId)) {
+                    hasCommented = true;
+                    break;
+                }
+            }
+            response.put("hasCommented", hasCommented);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }
 

@@ -3,6 +3,8 @@ package iuh.fit.se.models;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "products")
 public class Product {
@@ -24,6 +26,10 @@ public class Product {
     @JoinColumn(name = "category_id")
     @JsonBackReference
     private Category category;
+
+    @OneToMany(mappedBy = "product")
+//    @JsonBackReference
+    private List<Comment> comment;
 
     public Product(long id, String name, double price, String image, String description, long quantity, String factory, Double discount, Category category) {
         this.id = id;

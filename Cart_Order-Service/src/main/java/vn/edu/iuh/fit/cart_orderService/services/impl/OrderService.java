@@ -313,5 +313,26 @@ public class OrderService {
         return productList;
     }
 
+    public boolean CheckUserPurchaseProduct(String token, Long productId) {
+        User userDto = getUserFromToken(token);
+        if (userDto == null) {
+            // Nếu không tìm thấy thông tin người dùng từ token, trả về null hoặc có thể ném exception
+            throw new RuntimeException("Invalid token or user not found");
+//            return false;
+        }
+        List<Order> orders = orderRepository.findByUserId(userDto.getId());
+        System.out.println("Orders: " + orders);
+        for (Order order : orders) {
+            List<OrderDetail> orderDetails = orderDetailRepository.findByOrder_Id(order.getId());
+            System.out.println("OrderDetails: " + orderDetails);
+            for (OrderDetail orderDetail : orderDetails) {
+                if (orderDetail.getProductId().equals(productId)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 
 }
