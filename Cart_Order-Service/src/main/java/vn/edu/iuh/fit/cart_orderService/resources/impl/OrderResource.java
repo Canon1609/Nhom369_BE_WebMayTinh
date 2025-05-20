@@ -149,6 +149,42 @@ public class OrderResource {
         }
     }
 
+    @PostMapping("/updateOrder/{orderId}")
+    public ResponseEntity<Response> updateStatus(@PathVariable Long orderId, @RequestBody UpdateOderRequest request) {
+        log.info("Call order update status");
+        try {
+            String status = request.getStatus();
+            String message = request.getMessage();
+            System.out.println("Message: " + message);
+            Order output = orderService.handleUpdateOrder(orderId, status);
+            log.info("Update order status success");
+
+            return ResponseEntity.ok(new Response(
+                    200,
+                    "Update order status success",
+                    output
+            ));
+        } catch (RuntimeException e) {
+            log.error("Update order status fail");
+            log.error("Error: " + e.getMessage(), e);
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response(
+                    400,
+                    "Update order status failed: " + e.getMessage(),
+                    null
+            ));
+        } catch (Exception e) {
+            log.error("Update order status fail");
+            log.error("Error: " + e.getMessage(), e);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response(
+                    500,
+                    "Internal server error",
+                    null
+            ));
+        }
+    }
+
     @GetMapping("/getOrderAllOrder")
     public ResponseEntity<Map<String, Object>> getAllOrder(){
         Map<String, Object> response = new HashMap<>();

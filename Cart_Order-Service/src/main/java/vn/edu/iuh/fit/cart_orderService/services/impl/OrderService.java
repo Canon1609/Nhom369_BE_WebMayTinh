@@ -227,6 +227,22 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    public Order handleUpdateOrder(Long orderId, String status) {
+        // Lấy thông tin người dùng từ token
+
+        Optional<Order> optionalOrder = orderRepository.findById(orderId);
+        if (!optionalOrder.isPresent()) {
+            throw new RuntimeException("Order not found");
+        }
+        Order order = optionalOrder.get();
+
+        // Cập nhật trạng thái của đơn hàng
+        System.out.println("Status: " + status);
+        order.setStatus(status);
+        // Lưu đơn hàng đã được cập nhật
+        return orderRepository.save(order);
+    }
+
     public List<Map<String, Object>> getAllOrder() {
       List<Order> orders = orderRepository.findAll();
       List<Map<String, Object>> orderList = new ArrayList<>();
