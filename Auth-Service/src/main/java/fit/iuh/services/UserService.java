@@ -11,14 +11,15 @@ import jakarta.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailAuthenticationException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import java.util.UUID;
-import java.util.List;
+
+import java.util.*;
 
 @Service
 public class UserService {
@@ -170,6 +171,59 @@ public class UserService {
             // Nội dung email
             String verificationLink = baseUrl + "/verify?code=" + verificationCode;
             String emailContent = "Vui lòng nhấp vào liên kết bên dưới để xác thực tài khoản:\n" + verificationLink;
+            helper.setText(emailContent, false); // Plain text
+            // Gửi email
+            mailSender.send(message);
+        } catch (MessagingException e) {
+
+            throw new RuntimeException("Failed to configure email: " + e.getMessage(), e);
+        } catch (MailAuthenticationException e) {
+
+            throw new RuntimeException("SMTP authentication failed: " + e.getMessage(), e);
+        } catch (Exception e) {
+
+            throw new RuntimeException("Failed to send verification email: " + e.getMessage(), e);
+        }
+    }
+
+    public String forgetPassword(String email, String username) {
+//        Map<String, String> response = new HashMap<>();
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("email hoặc username không đúng");
+        }
+        if (!user.getUsername().equals(username)) {
+            throw new IllegalArgumentException("email hoặc username không đúng");
+        }
+        String code = String.format("%06d", new Random().nextInt(1000000));
+        sendEmailToGetPassword(email, code);
+//        response.put("message", "Mã otp đã được gửi đến email của bạn");
+//        response.put("code", code);
+        return code;
+    }
+
+    public String resetPassword(String username,  String newPassword) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new IllegalArgumentException("username không đúng");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        return "Đặt lại mật khẩu thành công";
+    }
+
+    public void sendEmailToGetPassword(String email, String code) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            // Thiết lập thông tin email
+            helper.setFrom("phuochuynguyen1002@gmail.com"); // Phải khớp với spring.mail.username
+            helper.setTo(email);
+            helper.setSubject("Xác thực tài khoản của bạn");
+            // Nội dung email
+//            String verificationLink = baseUrl + "/verify?code=" + verificationCode;
+            String otp = code;
+            String emailContent = "Mã otp để lấy lại mật khẩu của bạn là " + otp;
             helper.setText(emailContent, false); // Plain text
             // Gửi email
             mailSender.send(message);
