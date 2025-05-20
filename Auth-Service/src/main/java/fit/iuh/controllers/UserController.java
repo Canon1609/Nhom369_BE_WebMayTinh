@@ -1,5 +1,6 @@
 package fit.iuh.controllers;
 
+import dto.ChangePassworDto;
 import fit.iuh.models.Address;
 import fit.iuh.models.ProductFavorite;
 import fit.iuh.models.User;
@@ -575,6 +576,56 @@ public class UserController {
 
             response.put("message", "Lấy thông tin người dùng thành công");
             response.put("user", foundUser);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("message", "Lỗi hệ thống: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    @PostMapping("/changePassword")
+    public ResponseEntity<Map<String, Object>> changePassword(@RequestHeader("Authorization") String authHeader,
+                                                              @RequestBody ChangePassworDto request) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                response.put("message", "Thiếu hoặc sai định dạng Authorization header");
+                return ResponseEntity.status(401).body(response);
+            }
+            String token = authHeader.substring(7);
+            String username = jwtUtil.extractUsername(token);
+            if (username == null) {
+                response.put("message" , "Token không hợp lệ hoặc hết hạn");
+            }
+
+            User user = userService.finByUserName(username);
+            if (user == null) {
+                response.put("message", "Người dùng không tồn tại");
+                return ResponseEntity.status(404).body(response);
+            }
+            String oldPassword = request.getOldPassword();
+            String newPassword = request.getNewPassword();
+            String confirmPassword = request.getConfirmPassword();
+            // Kiểm tra mật khẩu mới và xác nhận mật khẩu có giống nhau không
+            if (!newPassword.equals(confirmPassword)) {
+                response.put("message", "Mật khẩu mới và xác nhận mật khẩu không giống nhau");
+                response.put("status", "error");
+                return ResponseEntity.status(400).body(response);
+            }
+//             Kiểm tra mật khẩu cũ có đúng không
+            if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+                response.put("message", "Mật khẩu cũ không đúng");
+                response.put("status", "error");
+                return ResponseEntity.status(400).body(response);
+            }
+
+            // Cập nhật mật khẩu mới
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userService.savaUser(user);
+
+            response.put("message", "Đổi mật khẩu thành công");
+            response.put("status", "success");
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {

@@ -206,6 +206,49 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgotPassword(@RequestBody Map<String, String> request) {
+        Map<String, String> response = new HashMap<>();
+        try {
+            String email = request.get("email");
+            String username = request.get("username");
+            System.out.println("email " +  email);
+            System.out.println("username " +  username);
+            if (email == null || username == null) {
+                response.put("message", "Email và username không được bỏ trống");
+                return ResponseEntity.status(400).body(response);
+            }
+            String otp = userService.forgetPassword(email,username);
+            response.put("message", "Đã gửi email đặt lại mật khẩu");
+            response.put("otp", otp);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(400).body(response);
+        } catch (Exception e) {
+            response.put("message", "Lỗi hệ thống: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(@RequestBody Map<String, String> request) {
+        Map<String, String> response = new HashMap<>();
+        try {
+            String username = request.get("username");
+            String newPassword = request.get("newPassword");
+            userService.resetPassword(username, newPassword);
+            response.put("message", "Đặt lại mật khẩu thành công");
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(400).body(response);
+        } catch (Exception e) {
+            response.put("message", "Lỗi hệ thống: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
 
 
 
