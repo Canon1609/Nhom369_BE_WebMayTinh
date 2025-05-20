@@ -3,6 +3,7 @@ package vn.edu.iuh.fit.cart_orderService.services.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -29,8 +30,14 @@ public class OrderService {
     @Autowired
     private RestTemplate restTemplate;
 
-    private final String PRODUCT_SERVICE_URL = "http://localhost:8082/api/products";
-    private final String authServiceUrl = "http://localhost:8080/users";
+//    private final String PRODUCT_SERVICE_URL = "http://localhost:8082/api/products";
+//    private final String authServiceUrl = "http://localhost:8080/users";
+    @Value("${product.service.url:http://product-service:8082/api/products}")
+    private String PRODUCT_SERVICE_URL; // Đổi tên biến để phù hợp với quy ước Spring Boot
+
+    @Value("${user-service.url:http://auth-service:8080/users}")
+    private String authServiceUrl; // Đổi tên biến để phù hợp với quy ước Spring Boot
+
 
     public OrderService(OrderRepository orderRepository, OrderDetailRepository orderDetailRepository, CartRepository cartRepository, CartDetailRepository cartDetailRepository, PaymentMethodRepository paymentMethodRepository) {
         this.orderRepository = orderRepository;
