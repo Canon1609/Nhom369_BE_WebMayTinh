@@ -1,6 +1,7 @@
 package vn.edu.iuh.fit.cart_orderService.services.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -19,8 +20,13 @@ public class CartService {
     @Autowired
     private RestTemplate restTemplate;
 
-    private final String PRODUCT_SERVICE_URL = "http://localhost:8082/api/products";
-    private final String authServiceUrl = "http://localhost:8080/users/account";
+//    private final String PRODUCT_SERVICE_URL = "http://localhost:8082/api/products";
+//    private final String authServiceUrl = "http://localhost:8080/users/account";
+    @Value("${product.service.url:http://product-service:8082/api/products}")
+    private String productServiceUrl; // Đổi tên biến để phù hợp với quy ước Spring Boot
+
+    @Value("${user-service.url:http://auth-service:8080/users/account}")
+    private String authServiceUrl; // Đổi tên biến để phù hợp với quy ước Spring Boot
 
     public CartService(CartRepository cartRepository,  CartDetailRepository cartDetailRepository) {
         this.cartRepository = cartRepository;
@@ -84,7 +90,7 @@ public class CartService {
             }
 
             // Gọi API ProductService để lấy thông tin sản phẩm
-            Product product = restTemplate.getForObject(PRODUCT_SERVICE_URL + "/" + productId, Product.class);
+            Product product = restTemplate.getForObject(productServiceUrl + "/" + productId, Product.class);
             System.out.println("Product: " + product);
 
             if (product != null) {
